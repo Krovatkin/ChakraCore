@@ -532,6 +532,7 @@ public:
     bool                isPostPeeps:1;
     bool                isPostLayout:1;
     bool                isPostFinalLower:1;
+    bool                hasSIMDOps : 1;
 
     typedef JsUtil::Stack<Js::Phase> CurrentPhasesStack;
     CurrentPhasesStack  currentPhases;
@@ -638,11 +639,15 @@ public:
     Js::ReadOnlyDynamicProfileInfo * GetProfileInfo() const { return this->profileInfo; }
     bool                HasProfileInfo() { return this->profileInfo->HasProfileInfo(); }
     bool                HasArrayInfo()
+        
     {
         const auto top = this->GetTopFunc();
         return this->HasProfileInfo() && this->GetWeakFuncRef() && !(top->HasTry() && !top->DoOptimizeTryCatch()) &&
             top->DoGlobOpt() && !PHASE_OFF(Js::LoopFastPathPhase, top);
     }
+
+    bool                HasSIMDOps() { return hasSIMDOps; }
+    bool                SetHasSIMDOps(bool b) { hasSIMDOps = b; };
 
     static Js::BuiltinFunction GetBuiltInIndex(IR::Opnd* opnd)
     {

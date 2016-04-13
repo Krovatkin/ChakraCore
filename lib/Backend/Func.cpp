@@ -122,6 +122,10 @@ Func::Func(JitArenaAllocator *alloc, CodeGenWorkItem* workItem, const Js::Functi
     , m_totalJumpTableSizeInBytesForSwitchStatements(0)
     , slotArrayCheckTable(nullptr)
     , frameDisplayCheckTable(nullptr)
+    //, hasSIMDOps(workItem->GetFunctionBody()->HasSIMDOps())
+    , hasSIMDOps(false)
+
+        
 {
     Assert(this->IsInlined() == !!runtimeData);
 
@@ -237,6 +241,8 @@ void
 Func::Codegen()
 {
     Assert(!IsJitInDebugMode() || !m_jnFunction->GetHasTry());
+    
+    Assert(!HasSIMDOps());
 
     Js::ScriptContext* scriptContext = this->GetScriptContext();
 

@@ -405,6 +405,7 @@ void BailOutRecord::DumpArgOffsets(uint count, int* offsets, int argOutSlotStart
         isFloat64 |= this->argOutOffsetInfo->argOutSimd128B8Syms->Test(argOutSlotStart + i) != 0;
         isFloat64 |= this->argOutOffsetInfo->argOutSimd128B16Syms->Test(argOutSlotStart + i) != 0;
 
+
         Assert(!isFloat64 || !isInt32);
 
         Output::Print(_u("%s #%3d: "), name, i + regSlotOffset);
@@ -718,16 +719,16 @@ BailOutRecord::IsOffsetNativeIntOrFloat(uint offsetIndex, int argOutSlotStart, b
     bool isFloat64 = this->argOutOffsetInfo->argOutFloat64Syms->Test(argOutSlotStart + offsetIndex) != 0;
     bool isInt32 = this->argOutOffsetInfo->argOutLosslessInt32Syms->Test(argOutSlotStart + offsetIndex) != 0;
     // SIMD_JS
-    bool isSimd128F4    = this->argOutOffsetInfo->argOutSimd128F4Syms->Test(argOutSlotStart + offsetIndex) != 0;
-    bool isSimd128I4    = this->argOutOffsetInfo->argOutSimd128I4Syms->Test(argOutSlotStart + offsetIndex) != 0;
-    bool isSimd128I8    = this->argOutOffsetInfo->argOutSimd128I8Syms->Test(argOutSlotStart + offsetIndex) != 0;
-    bool isSimd128I16   = this->argOutOffsetInfo->argOutSimd128I16Syms->Test(argOutSlotStart + offsetIndex) != 0;
-    bool isSimd128U4    = this->argOutOffsetInfo->argOutSimd128U4Syms->Test(argOutSlotStart + offsetIndex) != 0;
-    bool isSimd128U8    = this->argOutOffsetInfo->argOutSimd128U8Syms->Test(argOutSlotStart + offsetIndex) != 0;
-    bool isSimd128U16   = this->argOutOffsetInfo->argOutSimd128U16Syms->Test(argOutSlotStart + offsetIndex) != 0;
-    bool isSimd128B4    = this->argOutOffsetInfo->argOutSimd128B4Syms->Test(argOutSlotStart + offsetIndex) != 0;
-    bool isSimd128B8    = this->argOutOffsetInfo->argOutSimd128B8Syms->Test(argOutSlotStart + offsetIndex) != 0;
-    bool isSimd128B16   = this->argOutOffsetInfo->argOutSimd128B16Syms->Test(argOutSlotStart + offsetIndex) != 0;
+    bool isSimd128F4    = this->argOutOffsetInfo->argOutSimd128F4Syms && this->argOutOffsetInfo->argOutSimd128F4Syms->Test(argOutSlotStart + offsetIndex) != 0;
+    bool isSimd128I4    = this->argOutOffsetInfo->argOutSimd128I4Syms && this->argOutOffsetInfo->argOutSimd128I4Syms->Test(argOutSlotStart + offsetIndex) != 0;
+    bool isSimd128I8    = this->argOutOffsetInfo->argOutSimd128I8Syms && this->argOutOffsetInfo->argOutSimd128I8Syms->Test(argOutSlotStart + offsetIndex) != 0;
+    bool isSimd128I16   = this->argOutOffsetInfo->argOutSimd128I16Syms && this->argOutOffsetInfo->argOutSimd128I16Syms->Test(argOutSlotStart + offsetIndex) != 0;
+    bool isSimd128U4    = this->argOutOffsetInfo->argOutSimd128U4Syms && this->argOutOffsetInfo->argOutSimd128U4Syms->Test(argOutSlotStart + offsetIndex) != 0;
+    bool isSimd128U8    = this->argOutOffsetInfo->argOutSimd128U8Syms && this->argOutOffsetInfo->argOutSimd128U8Syms->Test(argOutSlotStart + offsetIndex) != 0;
+    bool isSimd128U16   = this->argOutOffsetInfo->argOutSimd128U16Syms && this->argOutOffsetInfo->argOutSimd128U16Syms->Test(argOutSlotStart + offsetIndex) != 0;
+    bool isSimd128B4    = this->argOutOffsetInfo->argOutSimd128B4Syms && this->argOutOffsetInfo->argOutSimd128B4Syms->Test(argOutSlotStart + offsetIndex) != 0;
+    bool isSimd128B8    = this->argOutOffsetInfo->argOutSimd128B8Syms && this->argOutOffsetInfo->argOutSimd128B8Syms->Test(argOutSlotStart + offsetIndex) != 0;
+    bool isSimd128B16   = this->argOutOffsetInfo->argOutSimd128B16Syms && this->argOutOffsetInfo->argOutSimd128B16Syms->Test(argOutSlotStart + offsetIndex) != 0;
 
     Assert(!isFloat64 || !isInt32 || 
         !isSimd128F4 || !isSimd128I4 || !isSimd128I8 || !isSimd128I16 || !

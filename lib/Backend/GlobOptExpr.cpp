@@ -636,7 +636,7 @@ GlobOpt::CSEOptimize(BasicBlock *block, IR::Instr * *const instrRef, Value **pSr
     }
 
     // SIMD_JS
-    if (instr->m_opcode == Js::OpCode::ExtendArg_A)
+    if (func->HasSIMDOps() && instr->m_opcode == Js::OpCode::ExtendArg_A)
     {
         // we don't want to CSE ExtendArgs, only the operation using them. To do that, we mimic CSE by transferring the symStore valueInfo to the dst.
         IR::Opnd *dst = instr->GetDst();

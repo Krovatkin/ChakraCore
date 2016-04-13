@@ -1640,6 +1640,8 @@ BackwardPass::ProcessBailOutCopyProps(BailOutInfo * bailOutInfo, BVSparse<JitAre
             StackSym * int32StackSym = nullptr;
             StackSym * float64StackSym = nullptr;
             StackSym * simd128StackSym = nullptr;
+            bool hasSIMDOps = func->HasSIMDOps();
+
             if (bailOutInfo->liveLosslessInt32Syms->Test(symId))
             {
                 // Var version of the sym is not live, use the int32 version
@@ -1653,11 +1655,11 @@ BackwardPass::ProcessBailOutCopyProps(BailOutInfo * bailOutInfo, BVSparse<JitAre
                 Assert(float64StackSym);
             }
             // SIMD_JS
-            else if (bailOutInfo->liveSimd128F4Syms->Test(symId))
+            else if (hasSIMDOps && bailOutInfo->liveSimd128F4Syms->Test(symId))
             {
                 simd128StackSym = stackSym->GetSimd128F4EquivSym(nullptr);
             }
-            else if (bailOutInfo->liveSimd128I4Syms->Test(symId))
+            else if (hasSIMDOps && bailOutInfo->liveSimd128I4Syms->Test(symId))
             {
                 simd128StackSym = stackSym->GetSimd128I4EquivSym(nullptr);
             }
@@ -1691,7 +1693,7 @@ BackwardPass::ProcessBailOutCopyProps(BailOutInfo * bailOutInfo, BVSparse<JitAre
                 upwardExposedUses->Set(float64StackSym->m_id);
             }
             // SIMD_JS
-            else if (simd128StackSym != nullptr)
+            else if (hasSIMDOps && simd128StackSym != nullptr)
             {
                 usedCopyPropSyms->PrependNode(allocator, copyPropSyms.Key(), simd128StackSym);
                 iter.RemoveCurrent(allocator);
@@ -2215,16 +2217,19 @@ BackwardPass::ProcessBailOutInfo(IR::Instr * instr, BailOutInfo * bailOutInfo)
 #if DBG
         // SIMD_JS
         // Simd128 syms should be live in at most one form
-        tempBv->And(bailOutInfo->liveSimd128F4Syms, bailOutInfo->liveSimd128I4Syms);
-        Assert(tempBv->IsEmpty());
+        if (func->HasSIMDOps())
+        {
+            tempBv->And(bailOutInfo->liveSimd128F4Syms, bailOutInfo->liveSimd128I4Syms);
+            Assert(tempBv->IsEmpty());
 
-        // Verify that all syms to restore are live in some fashion
-        tempBv->Minus(byteCodeUpwardExposedUsed, bailOutInfo->liveVarSyms);
-        tempBv->Minus(bailOutInfo->liveLosslessInt32Syms);
-        tempBv->Minus(bailOutInfo->liveFloat64Syms);
-        tempBv->Minus(bailOutInfo->liveSimd128F4Syms);
-        tempBv->Minus(bailOutInfo->liveSimd128I4Syms);
-        Assert(tempBv->IsEmpty());
+            // Verify that all syms to restore are live in some fashion
+            tempBv->Minus(byteCodeUpwardExposedUsed, bailOutInfo->liveVarSyms);
+            tempBv->Minus(bailOutInfo->liveLosslessInt32Syms);
+            tempBv->Minus(bailOutInfo->liveFloat64Syms);
+            tempBv->Minus(bailOutInfo->liveSimd128F4Syms);
+            tempBv->Minus(bailOutInfo->liveSimd128I4Syms);
+            Assert(tempBv->IsEmpty());
+        }
 #endif
 
         if (this->func->IsJitInDebugMode())
@@ -2295,26 +2300,29 @@ BackwardPass::ProcessBailOutInfo(IR::Instr * instr, BailOutInfo * bailOutInfo)
             NEXT_BITSET_IN_SPARSEBV;
 
             // SIMD_JS
-            tempBv->Or(bailOutInfo->liveSimd128F4Syms, bailOutInfo->liveSimd128I4Syms);
-            tempBv->And(byteCodeUpwardExposedUsed);
-            byteCodeUpwardExposedUsed->Minus(tempBv);
-            FOREACH_BITSET_IN_SPARSEBV(symId, tempBv)
+            if (func->HasSIMDOps())
             {
-                StackSym * stackSym = this->func->m_symTable->FindStackSym(symId);
-                Assert(stackSym->GetType() == TyVar);
-                StackSym * simd128Sym = nullptr;
-                if (bailOutInfo->liveSimd128F4Syms->Test(symId))
+                tempBv->Or(bailOutInfo->liveSimd128F4Syms, bailOutInfo->liveSimd128I4Syms);
+                tempBv->And(byteCodeUpwardExposedUsed);
+                byteCodeUpwardExposedUsed->Minus(tempBv);
+                FOREACH_BITSET_IN_SPARSEBV(symId, tempBv)
                 {
-                    simd128Sym = stackSym->GetSimd128F4EquivSym(nullptr);
+                    StackSym * stackSym = this->func->m_symTable->FindStackSym(symId);
+                    Assert(stackSym->GetType() == TyVar);
+                    StackSym * simd128Sym = nullptr;
+                    if (bailOutInfo->liveSimd128F4Syms->Test(symId))
+                    {
+                        simd128Sym = stackSym->GetSimd128F4EquivSym(nullptr);
+                    }
+                    else
+                    {
+                        Assert(bailOutInfo->liveSimd128I4Syms->Test(symId));
+                        simd128Sym = stackSym->GetSimd128I4EquivSym(nullptr);
+                    }
+                    byteCodeUpwardExposedUsed->Set(simd128Sym->m_id);
                 }
-                else
-                {
-                    Assert(bailOutInfo->liveSimd128I4Syms->Test(symId));
-                    simd128Sym = stackSym->GetSimd128I4EquivSym(nullptr);
-                }
-                byteCodeUpwardExposedUsed->Set(simd128Sym->m_id);
+                NEXT_BITSET_IN_SPARSEBV;
             }
-            NEXT_BITSET_IN_SPARSEBV;
         }
         // Var
         // Any remaining syms to restore will be restored from their var versions

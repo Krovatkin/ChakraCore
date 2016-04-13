@@ -66,11 +66,14 @@ namespace Js
     bool AsmJsModuleCompiler::CommitFunctions()
     {
         const int size = mFunctionArray.Count();
+        //bool hasSIMDOps = !mAsmSimdBuiltinUsedBV.IsAllClear(); //TODO: maybe it would be easier to track SIMD ops in Builder and Inliner? 
         // if changeHeap is defined, it must be first function, so we should skip it
         for (int i = 0; i < size; i++)
         {
             AsmJsFunc* func = mFunctionArray.Item(i);
             FunctionBody* functionBody = func->GetFuncBody();
+            //set a "hasSIMDOps" flag to reduce compilation times by skipping SIMD opts
+            //functionBody->SetHasSIMDOps(hasSIMDOps);
             AsmJsFunctionInfo* asmInfo = functionBody->AllocateAsmJsFunctionInfo();
             if (i == 0 && mUsesChangeHeap)
             {

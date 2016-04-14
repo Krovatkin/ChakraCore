@@ -495,7 +495,6 @@ namespace Js
         wasCalledFromLoop(false),
         hasScopeObject(false),
         hasNestedLoop(false),
-        hasSIMDOps(true), //assume there are SIMD ops in this function unless proven otherwise by a parser
         recentlyBailedOutOfJittedLoopBody(false),
         m_isAsmJsScheduledForFullJIT(false),
         m_asmJsTotalLoopCount(0)

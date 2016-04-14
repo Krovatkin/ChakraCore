@@ -1937,7 +1937,6 @@ namespace Js
         bool wasCalledFromLoop : 1;
         bool hasNestedLoop : 1;
         bool recentlyBailedOutOfJittedLoopBody : 1;
-        bool hasSIMDOps : 1;
         bool m_firstFunctionObject: 1;
         bool m_inlineCachesOnFunctionObject: 1;
         // Used for the debug re-parse. Saves state of function on the first parse, and restores it on a reparse. The state below is either dependent on
@@ -2484,9 +2483,6 @@ namespace Js
 
         bool GetHasHotLoop() const { return hasHotLoop; };
         void SetHasHotLoop();
-
-        bool HasSIMDOps() const { return hasSIMDOps; };
-        void SetHasSIMDOps(bool b) { hasSIMDOps = b; };
 
         bool GetHasNestedLoop() const { return hasNestedLoop; };
         void SetHasNestedLoop(bool nest) { hasNestedLoop = nest; };

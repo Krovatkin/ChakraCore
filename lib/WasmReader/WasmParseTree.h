@@ -56,7 +56,7 @@ namespace Wasm
 
     struct WasmMemOpNode
     {
-        uint32 offset;
+        INT offset;
         uint8 alignment;
     };
 

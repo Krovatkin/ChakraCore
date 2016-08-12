@@ -526,10 +526,10 @@ WasmBinaryReader::MemNode(WasmOp op)
 {
     uint len = 0;
 
-    LEB128(len); // flags (unused)
+    SLEB128(len); // flags (unused)
     m_funcState.count += len;
 
-    m_currentNode.mem.offset = LEB128(len);
+    m_currentNode.mem.offset = SLEB128(len);
     m_funcState.count += len;
 
     return op;

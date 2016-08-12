@@ -16,6 +16,13 @@
 </test>
 <test>
   <default>
+    <files>memaccess.js</files>
+    <baseline>memaccess.baseline</baseline>
+    <compile-flags>-on:wasm -on:wasmlazytrap</compile-flags>
+  </default>
+</test>
+<test>
+  <default>
     <files>controlflow.js</files>
     <baseline>controlflow.baseline</baseline>
     <compile-flags>-on:wasm</compile-flags>

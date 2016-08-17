@@ -61,6 +61,7 @@ namespace Wasm
         void ReadImportEntries();
         void ReadStartFunction();
         void ReadNamesSection();
+        void ReadGlobalsSection();
 
         // Primitive reader
         template <WasmTypes::WasmType type> void ConstNode();

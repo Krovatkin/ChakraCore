@@ -558,6 +558,10 @@ void WasmBinaryReader::ConstNode()
 bool
 WasmBinaryReader::EndOfFunc()
 {
+    if (*m_pc == wbEnd) 
+    {
+        return true;
+    }
     return m_funcState.count >= m_funcState.size;
 }
 
@@ -723,6 +727,28 @@ WasmBinaryReader::ReadNamesSection()
             ReadInlineName(len, localNameLen);
         }
     }
+}
+
+void
+WasmBinaryReader::ReadGlobalsSection()
+{
+    UINT len = 0;
+    UINT numEntries = LEB128(len);
+    m_pc += len;
+
+    for (UINT i = 0; i < numEntries; ++i)
+    {
+        UINT ty = ReadConst<UINT8>();
+        UINT mutability = ReadConst<UINT8>();
+        m_pc += 2;
+
+        WasmGlobal* g = Anew(m_alloc, WasmGlobal, m_alloc, ty, mutability == 1);
+        m_funcState.size = (UINT)(m_end - m_pc);
+        // TODO: Compile init_expr
+        while (ReadExpr() != wbFuncEnd);
+        m_module->AddGlobal(g, i);
+    }
+
 }
 
 char16* WasmBinaryReader::ReadInlineName(uint32& length, uint32& nameLength)

@@ -14,10 +14,10 @@ const moduleBytesView = new Uint8Array(blob);
 var a = Wasm.instantiateModule(moduleBytesView, {}).exports;
 
 try     { print(a.loadNoffset(0))}
-catch(err){ assert(true, err == 'Error: Compiling wasm failed: function loadNoffset[2]: Index offset must not be less than 0', "NegLoad");}
+catch(err){ assert(true, err == 'Error: Compiling wasm failed: function loadNoffset[2]: Index offsets must be greater than or equal to 0', "NegLoad");}
 
 try      { print(a.storeNoffset(0)) }
-catch(err) { assert(true, err == 'Error: Compiling wasm failed: function storeNoffset[3]: Index offset must not be less than 0', "NegStore");}
+catch(err) { assert(true, err == 'Error: Compiling wasm failed: function storeNoffset[3]: Index offsets must be greater than or equal to 0', "NegStore");}
 
 
 assert(-1, a.storeoffset(0));

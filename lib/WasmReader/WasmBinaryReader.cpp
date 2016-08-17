@@ -532,6 +532,11 @@ WasmBinaryReader::MemNode(WasmOp op)
     m_currentNode.mem.offset = SLEB128(len);
     m_funcState.count += len;
 
+    if (m_currentNode.mem.offset < 0)
+    {
+        ThrowDecodingError(_u("Index offsets must be greater than or equal to 0"));
+    }
+
     return op;
 }
 

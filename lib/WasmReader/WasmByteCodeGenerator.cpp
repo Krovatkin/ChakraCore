@@ -1068,17 +1068,13 @@ WasmBytecodeGenerator::EmitMemAccess(bool isStore)
     {
         throw WasmCompilationException(_u("Index expression must be of type I32"));
     }
-    if (offset >= 0)
+    if (offset > 0)
     {
         Js::RegSlot tempReg = m_i32RegSlots.AcquireTmpRegister();
         m_writer.AsmInt1Const1(Js::OpCodeAsmJs::Ld_IntConst, tempReg, offset);
 
         m_writer.AsmReg3(Js::OpCodeAsmJs::Add_Int, exprInfo.location, exprInfo.location, tempReg);
         m_i32RegSlots.ReleaseTmpRegister(tempReg);
-    }
-    else
-    {
-        throw WasmCompilationException(_u("Index offset must not be less than 0"));
     }
 
     Js::RegSlot resultReg;

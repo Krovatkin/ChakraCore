@@ -565,6 +565,11 @@ WasmBytecodeGenerator::EmitExpr(WasmOp op)
         info = EmitInfo(tempReg, WasmTypes::I32);
         }
         break;
+    case wbUnreachable:
+        {
+            m_writer.EmptyAsm(Js::OpCodeAsmJs::Unreachable_Void);
+            break;
+        }
 #include "WasmBinaryOpCodes.h"
     default:
         throw WasmCompilationException(_u("Unknown expression's op 0x%X"), op);

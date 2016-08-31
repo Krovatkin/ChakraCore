@@ -7661,6 +7661,14 @@ const byte * InterpreterStackFrame::OP_ProfiledLoopBodyStart(const byte * ip)
         return arr->GetByteLength() >> 16;
     }
 
+    void InterpreterStackFrame::OP_Unreachable()
+    {
+        JavascriptError::ThrowError(scriptContext, WASMERR_Unreachable);
+        return;
+    }
+
+    
+
     template <class T>
     void InterpreterStackFrame::OP_SimdLdArrGeneric(const unaligned T* playout)
     {

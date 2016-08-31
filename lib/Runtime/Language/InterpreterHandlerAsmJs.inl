@@ -178,7 +178,10 @@ EXDEF2    (NOPASMJS          , NopEx        , Empty                             
   EXDEF2_WMS( D1toD1Mem      , Trunc_Db         , Wasm::WasmMath::Trunc<double>                      )
   EXDEF2_WMS( D1toD1Mem      , Nearest_Db       , Wasm::WasmMath::Nearest<double>                    )
   EXDEF2_WMS( I1toI1Mem      , PopCnt_Int       , ::Math::PopCnt32                                   )
-  EXDEF2_WMS( VtoI1Mem       , CurrentMemory_Int   , OP_GetMemorySize                                   )
+  EXDEF2_WMS( VtoI1Mem       , CurrentMemory_Int , OP_GetMemorySize                                  )
+  EXDEF2    ( EMPTYASMJS     , Unreachable_Void  , OP_Unreachable                                    )
+
+
 
   DEF2_WMS( IP_TARG_ASM      , AsmJsLoopBodyStart, OP_ProfiledLoopBodyStart                      )
 

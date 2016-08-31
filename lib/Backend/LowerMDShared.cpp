@@ -5850,6 +5850,18 @@ LowererMD::GenerateCtz(IR::Instr * instr)
     }
 }
 
+
+void
+LowererMD::GenerateThrowUnreachable(IR::Instr * instr)
+{
+   
+    LoadHelperArgument(instr, IR::AddrOpnd::New((Js::Var)WASMERR_Unreachable, //conveniently zero-extends and truncates to int32 on x86/x64
+        IR::AddrOpndKindConstant, m_func, true));
+    IR::Opnd* scriptContextOpnd = IR::AddrOpnd::New(m_func->GetScriptContext(), IR::AddrOpndKindDynamicScriptContext, m_func);
+    LoadHelperArgument(instr, scriptContextOpnd);
+    ChangeToHelperCall(instr, IR::HelperThrow_Unreachable);
+}
+
 void
 LowererMD::GeneratePopCnt32(IR::Instr * instr)
 {

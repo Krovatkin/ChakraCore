@@ -415,7 +415,7 @@ WasmBinaryReader::ValidateModuleHeader()
     {
         ThrowDecodingError(_u("Invalid WASM version!"));
     }
-}
+}G
 
 void
 WasmBinaryReader::CallNode()
@@ -535,6 +535,10 @@ void WasmBinaryReader::ConstNode()
 bool
 WasmBinaryReader::EndOfFunc()
 {
+    if (*m_pc == bEnd) 
+    {
+        return true;
+    }
     return m_funcState.count >= m_funcState.size;
 }
 
@@ -833,12 +837,9 @@ WasmBinaryReader::ReadGlobalsSection()
 
         WasmGlobal* g = Anew(m_alloc, WasmGlobal, m_alloc, ty, mutability == 1);
         // TODO: Need to separate out init_expr ReadExpr() and in function ReadExpr() which 
-        // which m_funcState.count. 
-        ReadExpr();
-        if (*m_pc != wbEnd) 
-        {
-            ThrowDecodingError(_u("missing end in global init_expr"));
-        }
+        // mutates m_funcState.count. 
+        m_funcState.size = m_end;
+        while (ReadExpr() != wbFuncEnd);
         m_module->AddGlobal(g, i);
     }
 

@@ -86,7 +86,6 @@ WASM_CTRL_OPCODE(End,         0x0f, Limit, false)
 WASM_CTRL_OPCODE(Select,      0x05, Limit, false)
 
 // Constants, locals, globals, and calls.
-<<<<<<< HEAD
 WASM_MISC_OPCODE(I32Const,     0x10, Limit, false)
 WASM_MISC_OPCODE(I64Const,     0x11, Limit, true)
 WASM_MISC_OPCODE(F64Const,     0x12, Limit, false)

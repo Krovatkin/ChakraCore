@@ -535,7 +535,7 @@ void WasmBinaryReader::ConstNode()
 bool
 WasmBinaryReader::EndOfFunc()
 {
-    if (*m_pc == bEnd) 
+    if (*m_pc == wbEnd) 
     {
         return true;
     }

@@ -17,10 +17,19 @@ namespace Wasm
         WasmNode* getInit() const;
 
     private:
-        ArenaAllocator * m_alloc;
+        //ArenaAllocator * m_alloc;
 
         uint32 type;
         bool mutability;
-        WasmNode * init; 
+
+        union
+        {
+            WasmNode * init;
+            int32 i32;
+            float f32;
+            int64 i64;
+            double d;
+        };
+        
     };
 } // namespace Wasm

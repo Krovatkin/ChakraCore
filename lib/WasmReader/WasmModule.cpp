@@ -292,13 +292,17 @@ WasmModule::GetDataSeg(uint32 index) const
     return m_datasegs[index];
 }
 
+void WasmModule::SetGlobalCount(uint32 count)
+{
+    Assert(m_globalCount == 0 && m_globals == nullptr);
+    m_globalCount = count;
+    m_globals = AnewArray(&m_alloc, WasmGlobal*, count);
+}
+
 bool
 WasmModule::AddGlobal(WasmGlobal* g, uint32 index)
 {
-    if (index >= m_globalCount)
-    {
-        return false;
-    }
+    Assert(index < m_globalCount);
     m_globals[index] = g;
     return true;
 }
@@ -306,11 +310,9 @@ WasmModule::AddGlobal(WasmGlobal* g, uint32 index)
 WasmGlobal*
 WasmModule::GetGlobal(uint32 index) const
 {
-    if (index >= m_globalCount)
-    {
-        return nullptr;
-    }
+    Assert(index < m_globalCount);
     return m_globals[index];
+    
 }
 
 void
@@ -344,6 +346,7 @@ uint32 WasmModule::GetModuleEnvironmentSize() const
     // reserve space for as many function tables as there are signatures, though we won't fill them all
     size = UInt32Math::Add(size, GetSignatureCount());
     size = UInt32Math::Add(size, GetImportCount());
+    size = UInt32Math::Add(size, GetGlobalCount()*sizeof(WasmGlobal));
     return size;
 }
 

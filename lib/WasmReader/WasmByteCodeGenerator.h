@@ -123,8 +123,12 @@ namespace Wasm
         EmitInfo EmitBrTable();
         EmitInfo EmitDrop();
         EmitInfo EmitGetLocal();
+        EmitInfo EmitGetGlobal();
+        EmitInfo EmitSetGlobal();
         EmitInfo EmitSetLocal(bool tee);
         EmitInfo EmitReturnExpr(EmitInfo* explicitRetInfo = nullptr);
+        EmitInfo EmitReturnExpr();
+
         EmitInfo EmitSelect();
 #if DBG_DUMP
         void PrintOpName(WasmOp op) const;

@@ -140,6 +140,11 @@ WasmBinaryReader::ProcessCurrentSection()
     case bSectNames:
         ReadNamesSection();
         break;
+    case bSectGlobal:
+
+
+        ReadGlobalsSection();
+        break;
     default:
         Assert(UNREACHED);
         return false;
@@ -196,7 +201,7 @@ WasmBinaryReader::ReadSectionHeader()
         mbstowcs_s(&convertedChars, buf, nameLength + 1, sectionName, _TRUNCATE);
         buf[nameLength] = 0;
     }
-    TRACE_WASM_SECTION(_u("Section Header: %s, length = %u (0x%x)"), buf, sectionSize, sectionSize);
+    TRACE_WASM_SECTION(_u("Section Header: %s, length = %u (0x%x) at %u (0x%x)"), buf, sectionSize, sectionSize, header.start-m_start, header.start);
 #endif
 
     Assert(header.code != bSectInvalid);
@@ -377,6 +382,8 @@ WasmBinaryReader::ReadExpr()
     case wbSetLocal:
     case wbGetLocal:
     case wbTeeLocal:
+    case wbGetGlobal:
+    case wbSetGlobal:
         VarNode();
         break;
     case wbDrop:
@@ -827,18 +834,39 @@ WasmBinaryReader::ReadGlobalsSection()
 {
     UINT len = 0;
     UINT numEntries = LEB128(len);
-    m_pc += len;
+   
+
+    m_module->SetGlobalCount(numEntries);
 
     for (UINT i = 0; i < numEntries; ++i)
     {
         UINT ty = ReadConst<UINT8>();
         UINT mutability = ReadConst<UINT8>();
-        m_pc += 2;
+
 
         WasmGlobal* g = Anew(m_alloc, WasmGlobal, m_alloc, ty, mutability == 1);
+        m_funcState.count = 0;
         m_funcState.size = (UINT)(m_end - m_pc);
         // TODO: Compile init_expr
-        while (ReadExpr() != wbFuncEnd);
+        
+        
+            
+        WasmOp op = ReadExpr();
+        switch (op) {
+            case  wbI32Const:
+            case  wbI64Const:
+            case  wbF32Const:
+            case  wbF64Const:
+                g->cnst = m_currentNode.cnst;
+                break;
+            case  wbGetGlobal:
+                g->var = m_currentNode.var;
+                break;
+          
+        }
+
+        op = ReadExpr();
+        Assert(op == wbEnd);
         m_module->AddGlobal(g, i);
     }
 

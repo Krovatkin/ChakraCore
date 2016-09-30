@@ -71,6 +71,8 @@ namespace Wasm
         bool AddGlobal(WasmGlobal* g, uint32 index);
         WasmGlobal* GetGlobal(uint32 index) const;
         uint32 GetGlobalCount() const { return m_globalCount; }
+        void SetGlobalCount(uint32 count);
+        
 
         void SetStartFunction(uint32 i);
         uint32 GetStartFunction() const;
@@ -83,8 +85,12 @@ namespace Wasm
         void SetFuncOffset(uint val) { funcOffset = val; }
         uint GetImportFuncOffset() const { return importFuncOffset; }
         void SetImportFuncOffset(uint val) { importFuncOffset = val; }
+
         uint GetTableEnvironmentOffset() const { return indirFuncTableOffset; }
         void SetTableEnvironmentOffset(uint val) { indirFuncTableOffset = val; }
+        uint GetGlobalOffset() const { return globalOffset;  }
+        void SetGlobalOffset(uint val) { globalOffset = val; }
+
 
         WasmBinaryReader* GetReader() const { return m_reader; }
 
@@ -119,5 +125,6 @@ namespace Wasm
         uint funcOffset;
         uint importFuncOffset;
         uint indirFuncTableOffset;
+        uint globalOffset;
     };
 } // namespace Wasm

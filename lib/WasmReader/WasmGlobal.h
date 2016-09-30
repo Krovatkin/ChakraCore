@@ -14,7 +14,16 @@ namespace Wasm
         WasmGlobal(ArenaAllocator * alloc, uint32 _type, bool mutability);
         uint32 getType() const;
         bool getMutability() const;
-        WasmNode* getInit() const;
+        //WasmNode* getInit() const;
+
+
+        union
+        {
+            WasmConstLitNode cnst;
+            WasmVarNode var;
+            //WasmNode* init;
+            void* import;
+        };
 
     private:
         //ArenaAllocator * m_alloc;
@@ -22,14 +31,6 @@ namespace Wasm
         uint32 type;
         bool mutability;
 
-        union
-        {
-            WasmNode * init;
-            int32 i32;
-            float f32;
-            int64 i64;
-            double d;
-        };
         
     };
 } // namespace Wasm

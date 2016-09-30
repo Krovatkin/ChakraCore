@@ -8,6 +8,7 @@
 #pragma once
 namespace Js
 {
+
     class ArrayBufferParent;
     class ArrayBuffer;
     class SharedArrayBuffer;

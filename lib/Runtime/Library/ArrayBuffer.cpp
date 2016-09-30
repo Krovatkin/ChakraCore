@@ -6,6 +6,14 @@
 
 namespace Js
 {
+
+
+    WasmGlobal* WasmGlobal::FromVar(Var aValue)
+    {
+        AssertMsg(Is(aValue), "var must be an WasmGlobal");
+        return static_cast<WasmGlobal *>(RecyclableObject::FromVar(aValue));
+    }
+
     ArrayBuffer* ArrayBuffer::NewFromDetachedState(DetachedStateBase* state, JavascriptLibrary *library)
     {
         ArrayBufferDetachedStateBase* arrayBufferState = (ArrayBufferDetachedStateBase *)state;

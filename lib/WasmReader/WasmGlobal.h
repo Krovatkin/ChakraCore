@@ -5,6 +5,8 @@
 
 #pragma once
 
+
+
 namespace Wasm
 {
 
@@ -15,6 +17,17 @@ namespace Wasm
         uint32 getType() const;
         bool getMutability() const;
         WasmNode* getInit() const;
+        bool import; //TODO maybe merge these two via enum?
+        bool ref;
+
+        union
+        {
+            WasmConstLitNode cnst;
+            //Js::WasmGlobal::WasmConst cnst;
+            WasmVarNode var;
+            WasmNode* init;
+            GlobalImport* importVar;
+        };
 
     private:
         //ArenaAllocator * m_alloc;
@@ -22,14 +35,6 @@ namespace Wasm
         uint32 type;
         bool mutability;
 
-        union
-        {
-            WasmNode * init;
-            int32 i32;
-            float f32;
-            int64 i64;
-            double d;
-        };
         
     };
 } // namespace Wasm

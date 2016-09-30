@@ -170,6 +170,7 @@ namespace Js
         RuntimeFunction* promiseConstructor;
         RuntimeFunction* generatorFunctionConstructor;
         RuntimeFunction* asyncFunctionConstructor;
+        RuntimeFunction* wasmGlobalConstructor;
 
         JavascriptFunction* defaultAccessorFunction;
         JavascriptFunction* stackTraceAccessorFunction;
@@ -256,6 +257,9 @@ namespace Js
         DynamicObject* simdUint32x4Prototype;
         DynamicObject* simdFloat32x4Prototype;
         DynamicObject* simdFloat64x2Prototype;
+
+        //Wasm Prototypes
+        DynamicObject* wasmGlobalPrototype;
 
         JavascriptBoolean* booleanTrue;
         JavascriptBoolean* booleanFalse;

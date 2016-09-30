@@ -46,13 +46,16 @@ namespace Wasm
 
         void AllocateFunctionExports(uint32 entries);
         uint GetExportCount() const { return m_exportCount; }
-        void SetFunctionExport(uint32 iExport, uint32 funcIndex, char16* exportName, uint32 nameLength);
+        void SetFunctionExport(uint32 iExport, uint32 funcIndex, char16* exportName, uint32 nameLength, WasmExternalKinds::WasmExternalKind ekind);
         WasmExport* GetFunctionExport(uint32 iExport) const;
 
-        void AllocateFunctionImports(uint32 entries);
+        void AllocateImports(uint32 entries);
         uint32 GetImportCount() const { return m_importCount; }
-        void SetFunctionImport(uint32 i, uint32 sigId, char16* modName, uint32 modNameLen, char16* fnName, uint32 fnNameLen);
-        WasmImport* GetFunctionImport(uint32 i) const;
+        void SetFunctionImport(uint32 i, WasmImport ie, uint32 sigId);
+        void SetGlobalImport(uint32 i, WasmImport ie, bool mut, WasmTypes::WasmType ty);
+        //void SetFunctionImport(uint32 i, uint32 sigId, char16* modName, uint32 modNameLen, char16* fnName, uint32 fnNameLen);
+        GlobalImport* GetGlobalImport(uint32 i) const;
+        FunctionImport* GetFunctionImport(uint32 i) const;
 
         void AllocateDataSegs(uint32 count);
         bool AddDataSeg(WasmDataSegment* seg, uint32 index);
@@ -62,6 +65,11 @@ namespace Wasm
         bool AddGlobal(WasmGlobal* g, uint32 index);
         WasmGlobal* GetGlobal(uint32 index) const;
         uint32 GetGlobalCount() const { return m_globalCount; }
+        void SetGlobalCount(uint32 count);
+        void IncImportGlobalCount() { m_importedGlobalCount++;  }
+        void ResetImportGlobalCount() { m_importedGlobalCount = 0; }
+        uint32 GetImportGlobalCount() { return m_importedGlobalCount; }
+        
 
         void SetStartFunction(uint32 i);
         uint32 GetStartFunction() const;
@@ -76,6 +84,8 @@ namespace Wasm
         void SetImportFuncOffset(uint val) { importFuncOffset = val; }
         uint GetIndirFuncTableOffset() const { return indirFuncTableOffset; }
         void SetIndirFuncTableOffset(uint val) { indirFuncTableOffset = val; }
+        uint GetGlobalOffset() const { return globalOffset;  }
+        void SetGlobalOffset(uint val) { globalOffset = val; }
 
         WasmBinaryReader* GetReader() const { return m_reader; }
 
@@ -88,7 +98,8 @@ namespace Wasm
         uint32* m_indirectfuncs;
         WasmFunctionInfo** m_functionsInfo;
         WasmExport* m_exports;
-        WasmImport* m_imports;
+        FunctionImport* m_imports;
+        GlobalImport* m_globalImports;
         WasmDataSegment** m_datasegs;
         WasmGlobal** m_globals;
         WasmBinaryReader* m_reader;
@@ -100,6 +111,7 @@ namespace Wasm
         uint32 m_importCount;
         uint32 m_datasegCount;
         uint32 m_globalCount;
+        uint32 m_importedGlobalCount;
 
         uint32 m_startFuncIndex;
 
@@ -110,5 +122,6 @@ namespace Wasm
         uint funcOffset;
         uint importFuncOffset;
         uint indirFuncTableOffset;
+        uint globalOffset;
     };
 } // namespace Wasm

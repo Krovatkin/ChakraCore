@@ -6,8 +6,63 @@
 //----------------------------------------------------------------------------
 
 #pragma once
+
+#include "../WasmReader/WasmParseTree.h"
+
 namespace Js
 {
+
+
+
+
+
+    class WasmGlobal : public DynamicObject
+    {
+    private:
+
+        DEFINE_VTABLE_CTOR(WasmGlobal, DynamicObject);
+        DEFINE_MARSHAL_OBJECT_TO_SCRIPT_CONTEXT(WasmGlobal);
+    //protected:
+    //    WasmGlobal(DynamicType * type);
+
+    public:
+        uint type;
+        bool mut;
+        bool isRef;
+
+        /*
+        struct WasmConst
+        {
+            union
+            {
+                float f32;
+                double f64;
+                int32 i32;
+                int64 i64;
+            };
+        };
+        */
+            union
+            {
+                Wasm::WasmConstLitNode cnst;
+                Var var;
+            };
+
+ 
+        WasmGlobal(Var val, DynamicType * type) : DynamicObject(type), var(val) {};
+        WasmGlobal(Wasm::WasmConstLitNode c, DynamicType * type) : DynamicObject(type), cnst(c) {};
+        static bool Is(Var aValue) { return JavascriptOperators::GetTypeId(aValue) == TypeIds_WasmGlobal; }
+        static WasmGlobal* FromVar(Var aValue);
+
+
+        //Var GetValue() const {return value; };
+        //void SetValue(Var val) { value = val; };
+
+        //@TODO : implement
+        //virtual BOOL GetDiagValueString(StringBuilder<ArenaAllocator>* stringBuilder, ScriptContext* requestContext) override;
+        //virtual BOOL GetDiagTypeString(StringBuilder<ArenaAllocator>* stringBuilder, ScriptContext* requestContext) override;
+    };
+
     class ArrayBufferParent;
     class ArrayBuffer : public DynamicObject
     {

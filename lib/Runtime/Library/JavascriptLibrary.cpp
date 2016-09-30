@@ -133,6 +133,13 @@ namespace Js
 
         constructorPrototypeObjectType->SetHasNoEnumerableProperties(true);
 
+        wasmGlobalPrototype = DynamicObject::New(recycler,
+            DynamicType::New(scriptContext, TypeIds_Object, objectPrototype, nullptr,
+                DeferredTypeHandler<InitializeWasmGlobalPrototype, DefaultDeferredTypeFilter, true>::GetDefaultInstance()));
+
+        wasmGlobalType = DynamicType::New(scriptContext, TypeIds_WasmGlobal, wasmGlobalPrototype, nullptr,
+            SimplePathTypeHandler::New(scriptContext, this->GetRootPath(), 0, 0, 0, true, true), true, true);
+
         arrayBufferPrototype = DynamicObject::New(recycler,
             DynamicType::New(scriptContext, TypeIds_Object, objectPrototype, nullptr,
                 DeferredTypeHandler<InitializeArrayBufferPrototype, DefaultDeferredTypeFilter, true>::GetDefaultInstance()));
@@ -439,6 +446,9 @@ namespace Js
             SimplePathTypeHandler::New(scriptContext, this->GetRootPath(), 0, 0, 0, true, true), true, true);
 #endif
         nativeFloatArrayType = DynamicType::New(scriptContext, TypeIds_NativeFloatArray, arrayPrototype, nullptr,
+            SimplePathTypeHandler::New(scriptContext, this->GetRootPath(), 0, 0, 0, true, true), true, true);
+
+        wasmGlobalType = DynamicType::New(scriptContext, TypeIds_WasmGlobal, wasmGlobalPrototype, nullptr,
             SimplePathTypeHandler::New(scriptContext, this->GetRootPath(), 0, 0, 0, true, true), true, true);
 
         arrayBufferType = DynamicType::New(scriptContext, TypeIds_ArrayBuffer, arrayBufferPrototype, nullptr,
@@ -1328,6 +1338,10 @@ namespace Js
         regexConstructor = RecyclerNewEnumClass(recycler, EnumFunctionClass, JavascriptRegExpConstructor, regexConstructorType);
         AddFunction(globalObject, PropertyIds::RegExp, regexConstructor);
 
+        wasmGlobalConstructor = nullptr;//CreateBuiltinConstructor(&ArrayBuffer::EntryInfo::NewInstance,
+            //DeferredTypeHandler<InitializeWasmGlobalConstructor>::GetDefaultInstance());
+        //AddFunction(globalObject, PropertyIds::ArrayBuffer, arrayBufferConstructor);
+
         arrayBufferConstructor = CreateBuiltinConstructor(&ArrayBuffer::EntryInfo::NewInstance,
             DeferredTypeHandler<InitializeArrayBufferConstructor>::GetDefaultInstance());
         AddFunction(globalObject, PropertyIds::ArrayBuffer, arrayBufferConstructor);
@@ -1674,6 +1688,49 @@ namespace Js
         DebugOnly(CheckRegisteredBuiltIns(builtinFuncs, scriptContext));
 
         arrayPrototype->SetHasNoEnumerableProperties(true);
+    }
+
+    void  JavascriptLibrary::InitializeWasmGlobalConstructor(DynamicObject* wasmGlobalConstructor, DeferredTypeHandlerBase * typeHandler, DeferredInitializeMode mode)
+    {
+        typeHandler->Convert(wasmGlobalConstructor, mode, 4);
+
+        ScriptContext* scriptContext = wasmGlobalConstructor->GetScriptContext();
+        JavascriptLibrary* library = wasmGlobalConstructor->GetLibrary();
+
+        library->AddMember(wasmGlobalConstructor, PropertyIds::prototype, scriptContext->GetLibrary()->wasmGlobalPrototype, PropertyNone);
+
+
+        //@TODO i doubt we are going to need these 
+
+        /*
+        if (scriptContext->GetConfig()->IsES6SpeciesEnabled())
+        {
+        library->AddAccessorsToLibraryObject(wasmGlobalConstructor, PropertyIds::_symbolSpecies, &ArrayBuffer::EntryInfo::GetterSymbolSpecies, nullptr);
+        }
+
+        if (scriptContext->GetConfig()->IsES6FunctionNameEnabled())
+        {
+        library->AddMember(wasmGlobalConstructor, PropertyIds::name, scriptContext->GetPropertyString(PropertyIds::ArrayBuffer), PropertyConfigurable);
+        }
+        */
+
+        wasmGlobalConstructor->SetHasNoEnumerableProperties(true);
+    }
+
+    void  JavascriptLibrary::InitializeWasmGlobalPrototype(DynamicObject* wasmGlobalPrototype, DeferredTypeHandlerBase * typeHandler, DeferredInitializeMode mode)
+    {
+        typeHandler->Convert(wasmGlobalPrototype, mode, 2);
+
+        ScriptContext* scriptContext = wasmGlobalPrototype->GetScriptContext();
+        JavascriptLibrary* library = wasmGlobalPrototype->GetLibrary();
+        library->AddMember(wasmGlobalPrototype, PropertyIds::constructor, library->undefinedValue /*no c-tor sry*/);
+
+        if (scriptContext->GetConfig()->IsES6ToStringTagEnabled())
+        {
+            library->AddMember(wasmGlobalPrototype, PropertyIds::_symbolToStringTag, library->CreateStringFromCppLiteral(_u("WasmGlobal")), PropertyConfigurable);
+        }
+
+        wasmGlobalPrototype->SetHasNoEnumerableProperties(true);
     }
 
     void  JavascriptLibrary::InitializeArrayBufferConstructor(DynamicObject* arrayBufferConstructor, DeferredTypeHandlerBase * typeHandler, DeferredInitializeMode mode)

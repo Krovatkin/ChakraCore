@@ -223,6 +223,7 @@ namespace Js
         DynamicType * promiseType;
         DynamicType * javascriptEnumeratorIteratorType;
         DynamicType * listIteratorType;
+        DynamicType * wasmGlobalType;
 
         JavascriptFunction* builtinFunctions[BuiltinFunction::Count];
 
@@ -764,6 +765,8 @@ namespace Js
         DynamicType * GetRegexType() const { return regexType; }
         DynamicType * GetRegexResultType() const { return regexResultType; }
         DynamicType * GetArrayBufferType() const { return arrayBufferType; }
+        DynamicType * GetWasmGlobalType() const { return wasmGlobalType; }
+
         StaticType  * GetStringTypeStatic() const { AssertMsg(stringTypeStatic, "Where's stringTypeStatic?"); return stringTypeStatic; }
         DynamicType * GetStringTypeDynamic() const { return stringTypeDynamic; }
         StaticType  * GetVariantDateType() const { return variantDateType; }
@@ -1268,6 +1271,10 @@ namespace Js
         static void __cdecl JavascriptLibrary::InitializeAsyncFunction(DynamicObject *function, DeferredTypeHandlerBase * typeHandler, DeferredInitializeMode mode);
         static void __cdecl InitializeAsyncFunctionConstructor(DynamicObject* asyncFunctionConstructor, DeferredTypeHandlerBase * typeHandler, DeferredInitializeMode mode);
         static void __cdecl InitializeAsyncFunctionPrototype(DynamicObject* asyncFunctionPrototype, DeferredTypeHandlerBase * typeHandler, DeferredInitializeMode mode);
+
+        static void __cdecl InitializeWasmGlobalConstructor(DynamicObject* wasmGlobalConstructor, DeferredTypeHandlerBase * typeHandler, DeferredInitializeMode mode);
+        static void __cdecl InitializeWasmGlobalPrototype(DynamicObject* arrayBufferPrototype, DeferredTypeHandlerBase * typeHandler, DeferredInitializeMode mode);
+        
 
         RuntimeFunction* CreateBuiltinConstructor(FunctionInfo * functionInfo, DynamicTypeHandler * typeHandler, DynamicObject* prototype = nullptr);
         RuntimeFunction* DefaultCreateFunction(FunctionInfo * functionInfo, int length, DynamicObject * prototype, DynamicType * functionType, PropertyId nameId);

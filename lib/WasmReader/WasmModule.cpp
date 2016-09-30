@@ -5,6 +5,7 @@
 
 #include "WasmReaderPch.h"
 
+
 #ifdef ENABLE_WASM
 
 namespace Wasm
@@ -158,11 +159,12 @@ void WasmModule::AllocateFunctionExports(uint32 entries)
     m_exportCount = entries;
 }
 
-void WasmModule::SetFunctionExport(uint32 iExport, uint32 funcIndex, char16* exportName, uint32 nameLength)
+void WasmModule::SetFunctionExport(uint32 iExport, uint32 funcIndex, char16* exportName, uint32 nameLength, WasmExternalKinds::WasmExternalKind ekind)
 {
     m_exports[iExport].funcIndex = funcIndex;
     m_exports[iExport].nameLength = nameLength;
     m_exports[iExport].name = exportName;
+    m_exports[iExport].ekind = ekind;
 }
 
 Wasm::WasmExport* WasmModule::GetFunctionExport(uint32 iExport) const
@@ -175,23 +177,45 @@ Wasm::WasmExport* WasmModule::GetFunctionExport(uint32 iExport) const
 }
 
 void
-WasmModule::AllocateFunctionImports(uint32 entries)
+WasmModule::AllocateImports(uint32 entries)
 {
-    m_imports = AnewArrayZ(&m_alloc, WasmImport, entries);
+    m_imports = AnewArrayZ(&m_alloc, FunctionImport, entries);
+    m_globalImports = AnewArrayZ(&m_alloc, GlobalImport, entries);
     m_importCount = entries;
+    
 }
 
 void
-WasmModule::SetFunctionImport(uint32 i, uint32 sigId, char16* modName, uint32 modNameLen, char16* fnName, uint32 fnNameLen)
+WasmModule::SetGlobalImport(uint32 i, WasmImport ie, bool mut, WasmTypes::WasmType ty)
 {
-    m_imports[i].sigId = sigId;
-    m_imports[i].modNameLen = modNameLen;
-    m_imports[i].modName = modName;
-    m_imports[i].fnNameLen = fnNameLen;
-    m_imports[i].fnName = fnName;
+
+    WasmImport& globalImport = m_globalImports[i];
+    globalImport = ie;
+    m_globalImports[i].mut = mut;
+    m_globalImports[i].type = ty;
 }
 
-Wasm::WasmImport*
+Wasm::GlobalImport*
+WasmModule::GetGlobalImport(uint32 i) const
+{
+    if (i >= m_importCount)
+    {
+        return nullptr;
+    }
+    return &m_globalImports[i];
+}
+
+void
+WasmModule::SetFunctionImport(uint32 i, WasmImport ie, uint32 sigId)
+{
+
+    WasmImport& functionImport = m_imports[i];
+    functionImport = ie;
+    m_imports[i].sigId = sigId;
+    
+}
+
+Wasm::FunctionImport*
 WasmModule::GetFunctionImport(uint32 i) const
 {
     if (i >= m_importCount)
@@ -230,13 +254,17 @@ WasmModule::GetDataSeg(uint32 index) const
     return m_datasegs[index];
 }
 
+void WasmModule::SetGlobalCount(uint32 count)
+{
+    Assert(m_globalCount == 0 && m_globals == nullptr);
+    m_globalCount = count;
+    m_globals = AnewArray(&m_alloc, WasmGlobal*, count);
+}
+
 bool
 WasmModule::AddGlobal(WasmGlobal* g, uint32 index)
 {
-    if (index >= m_globalCount)
-    {
-        return false;
-    }
+    Assert(index < m_globalCount);
     m_globals[index] = g;
     return true;
 }
@@ -244,11 +272,8 @@ WasmModule::AddGlobal(WasmGlobal* g, uint32 index)
 WasmGlobal*
 WasmModule::GetGlobal(uint32 index) const
 {
-    if (index >= m_globalCount)
-    {
-        return nullptr;
-    }
-    return m_globals[index];
+    Assert(index < m_globalCount);
+    return m_globals[index];   
 }
 
 void
@@ -282,6 +307,7 @@ uint32 WasmModule::GetModuleEnvironmentSize() const
     // reserve space for as many function tables as there are signatures, though we won't fill them all
     size = UInt32Math::Add(size, GetSignatureCount());
     size = UInt32Math::Add(size, GetImportCount());
+    size = UInt32Math::Add(size, GetGlobalCount()*sizeof(Js::WasmGlobal));
     return size;
 }
 

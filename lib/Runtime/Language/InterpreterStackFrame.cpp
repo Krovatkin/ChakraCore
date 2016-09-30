@@ -2956,11 +2956,13 @@ namespace Js
             m_localSimdSlots = (AsmJsSIMDValue*)((char*)m_localSlots + simdByteOffset);
         }
 
+        
         // Load module environment
         FrameDisplay* frame = this->function->GetEnvironment();
+        
         m_localSlots[AsmJsFunctionMemory::ModuleEnvRegister] = frame->GetItem(0);
         m_localSlots[AsmJsFunctionMemory::ArrayBufferRegister] = (Var*)frame->GetItem(0) + AsmJsModuleMemory::MemoryTableBeginOffset;
-        m_localSlots[AsmJsFunctionMemory::ArraySizeRegister] = 0; // do not cache ArraySize in the interpreter
+        m_localSlots[AsmJsFunctionMemory::ArraySizeRegister] = frame->GetLength() > 1 ? frame->GetItem(1) : 0; // do not cache ArraySize in the interpreter
         m_localSlots[AsmJsFunctionMemory::ScriptContextBufferRegister] = functionBody->GetScriptContext();
 
         if (PHASE_TRACE1(AsmjsInterpreterStackPhase))
@@ -7686,6 +7688,75 @@ const byte * InterpreterStackFrame::OP_ProfiledLoopBodyStart(const byte * ip)
     {
         m_localSimdSlots[localRegisterID] = bValue;
     }
+
+#ifdef ASMJS_PLAT
+static WasmGlobal* GetGlobal(WasmGlobal* global) 
+{
+    while (global->isRef) //loop until we get to the real variable
+    {
+        global = static_cast<WasmGlobal*>(global->var);
+    }
+
+    return global;
+}
+#endif
+
+int InterpreterStackFrame::OP_GetGlobalInt(int index)
+    {
+#ifdef ASMJS_PLAT
+        WasmGlobal* globals = (WasmGlobal*)GetNonVarReg(AsmJsFunctionMemory::ArraySizeRegister);
+        return GetGlobal(&globals[index])->cnst.i32;
+#else
+        return 0;
+#endif
+    }
+
+
+template <class T>
+void InterpreterStackFrame::OP_SetGlobalInt(const unaligned T* playout)
+{
+#ifdef ASMJS_PLAT
+    WasmGlobal* globals = (WasmGlobal*)GetNonVarReg(AsmJsFunctionMemory::ArraySizeRegister);
+    uint index = GetRegRawInt(playout->I0);
+    int32 val = GetRegRawInt(playout->I1);
+    WasmGlobal& global = globals[index];
+    global.isRef = false; //not reference anymore
+    if (global.mut)
+    {
+        global.cnst.i32 = val;
+    }
+    else
+    {
+        JavascriptError::ThrowError(scriptContext, JSERR_CantAssignTo);
+    }
+#else
+    return 0;
+#endif
+}
+
+/*
+void InterpreterStackFrame::OP_SetGlobalInt(int index, int value)
+{
+#ifdef ASMJS_PLAT
+    WasmGlobal* globals = (WasmGlobal*)GetNonVarReg(AsmJsFunctionMemory::ArraySizeRegister);
+    WasmGlobal& global = globals[index];
+    if (global.mut) 
+    {
+        globals[index].cnst.i32 = value;
+        
+    }
+    else 
+    {
+        JavascriptError::ThrowError(scriptContext, JSERR_CantAssignTo);
+    }
+#else
+    return 0;
+#endif
+}
+*/
+
+
+
 
     int InterpreterStackFrame::OP_GetMemorySize()
     {

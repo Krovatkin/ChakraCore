@@ -189,8 +189,9 @@ namespace Js
 
     void WasmLibrary::WasmLoadFunctions(Wasm::WasmModule * wasmModule, ScriptContext* ctx, Var* moduleMemoryPtr, Var* exportObj, Var* localModuleFunctions, bool* hasAnyLazyTraps)
     {
-        FrameDisplay * frameDisplay = RecyclerNewPlus(ctx->GetRecycler(), sizeof(void*), FrameDisplay, 1);
+        FrameDisplay * frameDisplay = RecyclerNewPlus(ctx->GetRecycler(), sizeof(void*), FrameDisplay, 2);
         frameDisplay->SetItem(0, moduleMemoryPtr);
+        frameDisplay->SetItem(1, moduleMemoryPtr + wasmModule->GetGlobalOffset());
 
         for (uint i = 0; i < wasmModule->GetFunctionCount(); ++i)
         {
@@ -241,8 +242,9 @@ namespace Js
         return exportsNamespace;
     }
 
-    void WasmLibrary::WasmBuildObject(Wasm::WasmModule * wasmModule, ScriptContext* ctx, Var exportsNamespace, Var* heap, Var* exportObj, bool* hasAnyLazyTraps, Var* localModuleFunctions)
+    void WasmLibrary::WasmBuildObject(Wasm::WasmModule * wasmModule, ScriptContext* ctx, Var exportsNamespace, Var* heap, Var* exportObj, bool* hasAnyLazyTraps, Var* localModuleFunctions, Var globals)
     {
+
         if (wasmModule->GetMemory()->minSize != 0 && wasmModule->GetMemory()->exported)
         {
             PropertyRecord const * propertyRecord = nullptr;
@@ -260,6 +262,7 @@ namespace Js
             JavascriptOperators::OP_SetProperty(exportsNamespace, hasErrorsPropertyRecord->GetPropertyId(), JavascriptBoolean::OP_LdTrue(ctx), ctx);
         }
 
+        WasmGlobal* globalsArray = static_cast<WasmGlobal*>(globals);
         for (uint32 iExport = 0; iExport < wasmModule->GetExportCount(); ++iExport)
         {
             Wasm::WasmExport* funcExport = wasmModule->GetFunctionExport(iExport);
@@ -267,16 +270,33 @@ namespace Js
             {
                 PropertyRecord const * propertyRecord = nullptr;
                 ctx->GetOrAddPropertyRecord(funcExport->name, funcExport->nameLength, &propertyRecord);
-                Var funcObj;
-                // todo:: This should not happen, we need to add validation that the `function_bodies` section is present
-                if (funcExport->funcIndex < wasmModule->GetFunctionCount())
+                
+                Var funcObj = ctx->GetLibrary()->GetUndefined();
+                
+                
+                switch (funcExport->ekind) 
                 {
-                    funcObj = localModuleFunctions[funcExport->funcIndex];
+                case Wasm::WasmExternalKinds::Function:
+                    // todo:: This should not happen, we need to add validation that the `function_bodies` section is present
+                    if (funcExport->funcIndex < wasmModule->GetFunctionCount())
+                    {
+                        funcObj = localModuleFunctions[funcExport->funcIndex];
+                    }
+                    break;
+                case Wasm::WasmExternalKinds::Global:
+                    if (funcExport->funcIndex < wasmModule->GetGlobalCount()) 
+                    {
+                        funcObj = &globalsArray[funcExport->funcIndex]; //not necessarily initialized at this point 
+                    }
+                    break;
+                default:
+                    //funcObj stays Undef handled below
+                    break;
                 }
-                else
+
+                if (funcObj == ctx->GetLibrary()->GetUndefined()) 
                 {
                     Assert(UNREACHED);
-                    funcObj = ctx->GetLibrary()->GetUndefined();
                 }
                 JavascriptOperators::OP_SetProperty(exportsNamespace, propertyRecord->GetPropertyId(), funcObj, ctx);
             }
@@ -296,6 +316,10 @@ namespace Js
             PropertyRecord const * propertyRecord = nullptr;
 
             char16* modName = wasmModule->GetFunctionImport(i)->modName;
+
+            if (!modName)
+                continue;
+
             uint32 modNameLen = wasmModule->GetFunctionImport(i)->modNameLen;
             ctx->GetOrAddPropertyRecord(modName, modNameLen, &modPropertyRecord);
             Var modProp = JavascriptOperators::OP_GetProperty(ffi, modPropertyRecord->GetPropertyId(), ctx);
@@ -347,6 +371,65 @@ namespace Js
         }
     }
 
+    void WasmLibrary::WasmLoadGlobals(Wasm::WasmModule * wasmModule, ScriptContext* ctx, Var globals, Var ffi)
+    {
+        WasmGlobal* globalsArray = static_cast<WasmGlobal*>(globals);
+        for (uint i = 0; i < wasmModule->GetGlobalCount(); i++, globalsArray++)
+        {
+            Wasm::WasmGlobal* globalNode = wasmModule->GetGlobal(i);
+
+
+            WasmGlobal* global = nullptr;
+
+            if (globalNode->ref)
+            {
+                //local ref
+                //import
+                if (globalNode->import)
+                {
+                    PropertyRecord const * modPropertyRecord = nullptr;
+                    PropertyRecord const * propertyRecord = nullptr;
+
+                    char16* modName = wasmModule->GetGlobalImport(i)->modName;
+                    uint32 modNameLen = wasmModule->GetGlobalImport(i)->modNameLen;
+                    ctx->GetOrAddPropertyRecord(modName, modNameLen, &modPropertyRecord);
+                    Var modProp = JavascriptOperators::OP_GetProperty(ffi, modPropertyRecord->GetPropertyId(), ctx);
+
+                    char16* name = wasmModule->GetGlobalImport(i)->fnName;
+                    uint32 nameLen = wasmModule->GetGlobalImport(i)->fnNameLen;
+                    Var prop = nullptr;
+
+                    ctx->GetOrAddPropertyRecord(name, nameLen, &propertyRecord);
+
+                    if (!JavascriptObject::Is(modProp))
+                    {
+                        throw Wasm::WasmCompilationException(_u("Import module %s is invalid"), modName);
+                    }
+                    prop = JavascriptOperators::OP_GetProperty(modProp, propertyRecord->GetPropertyId(), ctx);
+        
+                    if (!WasmGlobal::Is(prop))
+                    {
+                        throw Wasm::WasmCompilationException(_u("Import global %s.%s is invalid"), modName, name);
+                    }
+                    global = ::new(globalsArray) WasmGlobal(static_cast<Var>(prop), ctx->GetLibrary()->GetWasmGlobalType());
+                }
+                else 
+                {
+                    global = ::new(globalsArray) WasmGlobal(static_cast<Var>(&globalsArray[globalNode->var.num]), ctx->GetLibrary()->GetWasmGlobalType());
+                }
+            }
+            else
+            {
+                global = ::new(globalsArray) WasmGlobal(globalNode->cnst, ctx->GetLibrary()->GetWasmGlobalType());
+            }
+            global->mut = globalNode->getMutability();
+            global->isRef = globalNode->ref;
+        }
+        
+        return;
+    }
+    
+
     Var WasmLibrary::LoadWasmScript(
         ScriptContext* scriptContext,
         const char16* script,
@@ -382,22 +465,30 @@ namespace Js
             wasmModule = bytecodeGen->GenerateModule();
 
             Var* moduleEnvironmentPtr = RecyclerNewArrayZ(scriptContext->GetRecycler(), Var, wasmModule->GetModuleEnvironmentSize());
+            uint ofst = wasmModule->GetFuncOffset();
             Var* heap = moduleEnvironmentPtr + wasmModule->GetHeapOffset();
             exportObj = JavascriptOperators::NewJavascriptObjectNoArg(scriptContext);
-            Var* localModuleFunctions = moduleEnvironmentPtr + wasmModule->GetFuncOffset();
+            Var* localModuleFunctions = moduleEnvironmentPtr + ofst;
 
             WasmLoadDataSegs(wasmModule, heap, scriptContext);
 
             bool hasAnyLazyTraps = false;
             WasmLoadFunctions(wasmModule, scriptContext, moduleEnvironmentPtr, &exportObj, localModuleFunctions, &hasAnyLazyTraps);
             Js::Var exportsNamespace = WasmLoadExports(wasmModule, scriptContext, localModuleFunctions);
-            WasmBuildObject(wasmModule, scriptContext, exportsNamespace, heap, &exportObj, &hasAnyLazyTraps, localModuleFunctions);
+            Var globals = moduleEnvironmentPtr + wasmModule->GetGlobalOffset();
+            WasmLoadGlobals(wasmModule, scriptContext, globals, ffi);
+            WasmBuildObject(wasmModule, scriptContext, exportsNamespace, heap, &exportObj, &hasAnyLazyTraps, localModuleFunctions, globals);
 
-            Var* importFunctions = moduleEnvironmentPtr + wasmModule->GetImportFuncOffset();
+            uint imofst = wasmModule->GetImportFuncOffset();
+            Var* importFunctions = moduleEnvironmentPtr + imofst;
             WasmLoadImports(wasmModule, scriptContext, importFunctions, ffi);
 
             Var** indirectFunctionTables = (Var**)(moduleEnvironmentPtr + wasmModule->GetIndirFuncTableOffset());
             WasmLoadIndirectFunctionTables(wasmModule, scriptContext, indirectFunctionTables, localModuleFunctions);
+
+            
+            
+
             uint32 startFuncIdx = wasmModule->GetStartFunction();
             if (start)
             {

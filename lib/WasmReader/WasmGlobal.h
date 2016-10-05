@@ -12,25 +12,25 @@ namespace Wasm
 
     class WasmGlobal
     {
+        
+
     public:
-        WasmGlobal(ArenaAllocator * alloc, uint32 _type, bool mutability);
+
+        enum PointerType { Invalid, Const, LocalReference, ImportedReference };
+
+        WasmGlobal(uint32 _type, bool mutability);
         uint32 getType() const;
         bool getMutability() const;
-        WasmNode* getInit() const;
-        bool import; //TODO maybe merge these two via enum?
-        bool ref;
+        PointerType ptype;
 
         union
         {
             WasmConstLitNode cnst;
-            //Js::WasmGlobal::WasmConst cnst;
             WasmVarNode var;
-            WasmNode* init;
             GlobalImport* importVar;
         };
 
     private:
-        //ArenaAllocator * m_alloc;
 
         uint32 type;
         bool mutability;

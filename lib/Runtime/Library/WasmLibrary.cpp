@@ -371,21 +371,28 @@ namespace Js
         }
     }
 
+
+    static WasmGlobal* GetConstGlobal(WasmGlobal* global)
+    {
+        while (global->IsReference()) //loop until we get to the const variable
+        {
+            global = static_cast<WasmGlobal*>(global->var);
+        }
+
+        return global;
+    }
+
     void WasmLibrary::WasmLoadGlobals(Wasm::WasmModule * wasmModule, ScriptContext* ctx, Var globals, Var ffi)
     {
         WasmGlobal* globalsArray = static_cast<WasmGlobal*>(globals);
-        for (uint i = 0; i < wasmModule->GetGlobalCount(); i++, globalsArray++)
+        for (uint i = 0; i < wasmModule->GetGlobalCount(); i++)
         {
-            Wasm::WasmGlobal* globalNode = wasmModule->GetGlobal(i);
-
-
+            Wasm::WasmGlobal globalNode = wasmModule->GetGlobal(i);
             WasmGlobal* global = nullptr;
 
-            if (globalNode->ref)
+            switch (globalNode.ptype) 
             {
-                //local ref
-                //import
-                if (globalNode->import)
+                case Wasm::WasmGlobal::ImportedReference:
                 {
                     PropertyRecord const * modPropertyRecord = nullptr;
                     PropertyRecord const * propertyRecord = nullptr;
@@ -406,27 +413,45 @@ namespace Js
                         throw Wasm::WasmCompilationException(_u("Import module %s is invalid"), modName);
                     }
                     prop = JavascriptOperators::OP_GetProperty(modProp, propertyRecord->GetPropertyId(), ctx);
-        
+
                     if (!WasmGlobal::Is(prop))
                     {
                         throw Wasm::WasmCompilationException(_u("Import global %s.%s is invalid"), modName, name);
                     }
-                    global = ::new(globalsArray) WasmGlobal(static_cast<Var>(prop), ctx->GetLibrary()->GetWasmGlobalType());
+
+                    if (WasmGlobal::FromVar(prop)->IsMutable()) 
+                    {
+                        throw Wasm::WasmCompilationException(_u("global %d references a mutable global"), i);
+                    }
+
+                    global = ::new(&globalsArray[i]) WasmGlobal(prop, ctx->GetLibrary()->GetWasmGlobalType());
+                    break;
                 }
-                else 
-                {
-                    global = ::new(globalsArray) WasmGlobal(static_cast<Var>(&globalsArray[globalNode->var.num]), ctx->GetLibrary()->GetWasmGlobalType());
-                }
+                case Wasm::WasmGlobal::LocalReference:
+                    global = ::new(&globalsArray[i]) WasmGlobal(static_cast<Var>(&globalsArray[globalNode.var.num]), ctx->GetLibrary()->GetWasmGlobalType());
+                    break;
+                case Wasm::WasmGlobal::Const:
+                    global = ::new(&globalsArray[i]) WasmGlobal(globalNode.cnst, ctx->GetLibrary()->GetWasmGlobalType());
+                    break;
             }
-            else
-            {
-                global = ::new(globalsArray) WasmGlobal(globalNode->cnst, ctx->GetLibrary()->GetWasmGlobalType());
-            }
-            global->mut = globalNode->getMutability();
-            global->isRef = globalNode->ref;
+
+            global->SetMutability(globalNode.getMutability());
+            global->SetIsReference(globalNode.ptype > Wasm::WasmGlobal::Const);
+            global->SetType(globalNode.getType());
+
         }
         
+        //now let's resolve all globals referencing other globals to const values
+        globalsArray = static_cast<WasmGlobal*>(globals); 
+        for (uint i = 0; i < wasmModule->GetGlobalCount(); i++) 
+        {
+            WasmGlobal* constGlobal = GetConstGlobal(&globalsArray[i]); //this could be stuck nicely 
+            WasmGlobal& currentGlobal = globalsArray[i];                //in an infinite loop if there is a cycle 
+            currentGlobal.cnst = constGlobal->cnst;                     //TODO: use a bitvector to keep track of visited globals?
+            currentGlobal.SetIsReference(false); //resolved to the const value        
+        }
         return;
+        
     }
     
 

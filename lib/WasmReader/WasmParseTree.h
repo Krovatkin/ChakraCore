@@ -120,31 +120,8 @@ namespace Wasm
         WasmExternalKinds::WasmExternalKind ekind;
     };
 
-    struct WasmAuxFuncImport 
-    {
-        
-    };
-
-    struct WasmAuxGlobalImport 
-    {
-
-    };
-
-    struct WasmAuxImport 
-    {
-        union 
-        {
-        WasmAuxFuncImport funcData;
-        WasmAuxGlobalImport globalData;
-        };
-    };
-
-
-
     struct WasmImport
     {
-        //WasmExternalKinds::WasmExternalKind ekind;
-        //WasmAuxImport aux;
         uint32 modNameLen;
         char16* modName;
         uint32 fnNameLen;

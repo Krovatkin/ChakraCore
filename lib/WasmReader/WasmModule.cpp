@@ -269,11 +269,23 @@ WasmModule::AddGlobal(WasmGlobal* g, uint32 index)
     return true;
 }
 
-WasmGlobal*
+WasmGlobal
 WasmModule::GetGlobal(uint32 index) const
 {
-    Assert(index < m_globalCount);
-    return m_globals[index];   
+    if (index >= GetGlobalCount()) 
+    {
+        throw WasmCompilationException(_u("Global index %d is out of bounds"), index);
+    }
+
+    if (index < GetImportGlobalCount())
+    {
+         WasmGlobal global(m_globalImports[index].type, m_globalImports[index].mut);
+         global.importVar = &m_globalImports[index];
+         global.ptype = WasmGlobal::ImportedReference;
+         return global;
+    }
+    
+    return *m_globals[index - GetImportGlobalCount()];
 }
 
 void

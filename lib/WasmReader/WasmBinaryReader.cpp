@@ -137,8 +137,6 @@ WasmBinaryReader::ProcessCurrentSection()
         ReadNamesSection();
         break;
     case bSectGlobal:
-
-
         ReadGlobalsSection();
         break;
     default:
@@ -742,36 +740,20 @@ void
 WasmBinaryReader::ReadGlobalsSection()
 {
 
-    //imported and local globals are aggregated into one namespace
     UINT len = 0;
     UINT numEntries = LEB128(len);
-   
-    uint importGlobalCount = m_module->GetImportGlobalCount();
-    m_module->SetGlobalCount(numEntries + importGlobalCount);
-
-    for (UINT i = 0; i < m_module->GetImportCount(); i++) 
-    {
-        GlobalImport* entry = m_module->GetGlobalImport(i);
-        WasmGlobal* g = Anew(m_alloc, WasmGlobal, m_alloc, entry->type, entry->mut);
-        g->importVar = entry; //linking will be done in WasmLoadScript
-        m_module->AddGlobal(g, i);
-        g->import = true;
-        g->ref = true;
-    }
+    m_module->SetGlobalCount(numEntries);
 
     for (UINT i = 0; i < numEntries; ++i)
     {
         UINT ty = ReadConst<UINT8>();
-        UINT mutability = ReadConst<UINT8>();
+        bool mutability = ReadConst<UINT8>() == 0; //mutable if the byte is set
 
-
-        WasmGlobal* g = Anew(m_alloc, WasmGlobal, m_alloc, ty, mutability == 1);
+        WasmGlobal* g = Anew(m_alloc, WasmGlobal, ty, mutability);
         m_funcState.count = 0;
         m_funcState.size = (UINT)(m_end - m_pc);
-        // TODO: Compile init_expr
-        
-        
-            
+
+       
         WasmOp op = ReadExpr();
         switch (op) {
             case  wbI32Const:
@@ -779,17 +761,18 @@ WasmBinaryReader::ReadGlobalsSection()
             case  wbF32Const:
             case  wbF64Const:
                 g->cnst = m_currentNode.cnst;
+                g->ptype = WasmGlobal::Const;
                 break;
             case  wbGetGlobal:
                 g->var = m_currentNode.var;
-                g->ref = true;
+                g->ptype = WasmGlobal::LocalReference;
                 break;
           
         }
 
         op = ReadExpr();
         Assert(op == wbEnd);
-        m_module->AddGlobal(g, i + importGlobalCount);
+        m_module->AddGlobal(g, i);
     }
 
 }
@@ -858,7 +841,7 @@ WasmBinaryReader::ReadImportEntries()
         case WasmExternalKinds::Global:
         {
             WasmTypes::WasmType type = ReadWasmType(len);
-            bool mutability = ReadConst<UINT8>() == 1;
+            bool mutability = ReadConst<UINT8>() == 0; //mutable if the byte is set
             m_module->IncImportGlobalCount();
             m_module->SetGlobalImport(i, ie, mutability, type);
             break;

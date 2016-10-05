@@ -585,12 +585,12 @@ EmitInfo
 WasmBytecodeGenerator::EmitGetGlobal() 
 {
     uint globalIndex = GetReader()->m_currentNode.var.num;
-    WasmGlobal* glob = m_module->GetGlobal(globalIndex);
+    WasmGlobal glob = m_module->GetGlobal(globalIndex);
 
     Js::RegSlot constIndexReg = m_i32RegSlots.AcquireTmpRegister();
     m_writer.AsmInt1Const1(Js::OpCodeAsmJs::Ld_IntConst, constIndexReg, globalIndex);
 
-    WasmTypes::WasmType ty = static_cast<WasmTypes::WasmType>(glob->getType());
+    WasmTypes::WasmType ty = static_cast<WasmTypes::WasmType>(glob.getType());
 
     static const Js::OpCodeAsmJs globalOpcodes[] = { 
         Js::OpCodeAsmJs::GetGlobal_Int, 
@@ -614,8 +614,8 @@ EmitInfo
 WasmBytecodeGenerator::EmitSetGlobal() 
 {
     uint globalIndex = GetReader()->m_currentNode.var.num;
-    WasmGlobal* glob = m_module->GetGlobal(globalIndex);
-    WasmTypes::WasmType ty = static_cast<WasmTypes::WasmType>(glob->getType());
+    WasmGlobal glob = m_module->GetGlobal(globalIndex);
+    WasmTypes::WasmType ty = static_cast<WasmTypes::WasmType>(glob.getType());
 
     EmitInfo info = PopEvalStack();
 

@@ -7689,23 +7689,12 @@ const byte * InterpreterStackFrame::OP_ProfiledLoopBodyStart(const byte * ip)
         m_localSimdSlots[localRegisterID] = bValue;
     }
 
-#ifdef ASMJS_PLAT
-static WasmGlobal* GetGlobal(WasmGlobal* global) 
-{
-    while (global->isRef) //loop until we get to the real variable
-    {
-        global = static_cast<WasmGlobal*>(global->var);
-    }
-
-    return global;
-}
-#endif
-
 int InterpreterStackFrame::OP_GetGlobalInt(int index)
     {
 #ifdef ASMJS_PLAT
         WasmGlobal* globals = (WasmGlobal*)GetNonVarReg(AsmJsFunctionMemory::ArraySizeRegister);
-        return GetGlobal(&globals[index])->cnst.i32;
+        Assert(!globals[index].IsReference()); //no references at this point should have been resolved at link-time.
+        return globals[index].cnst.i32;
 #else
         return 0;
 #endif
@@ -7720,45 +7709,22 @@ void InterpreterStackFrame::OP_SetGlobalInt(const unaligned T* playout)
     uint index = GetRegRawInt(playout->I0);
     int32 val = GetRegRawInt(playout->I1);
     WasmGlobal& global = globals[index];
-    global.isRef = false; //not reference anymore
-    if (global.mut)
-    {
-        global.cnst.i32 = val;
-    }
-    else
+
+    if (global.GetType() != Wasm::WasmTypes::I32 || !global.IsMutable())
     {
         JavascriptError::ThrowError(scriptContext, JSERR_CantAssignTo);
     }
+
+    global.cnst.i32 = val;
+    
+    
 #else
     return 0;
 #endif
 }
 
-/*
-void InterpreterStackFrame::OP_SetGlobalInt(int index, int value)
-{
-#ifdef ASMJS_PLAT
-    WasmGlobal* globals = (WasmGlobal*)GetNonVarReg(AsmJsFunctionMemory::ArraySizeRegister);
-    WasmGlobal& global = globals[index];
-    if (global.mut) 
-    {
-        globals[index].cnst.i32 = value;
-        
-    }
-    else 
-    {
-        JavascriptError::ThrowError(scriptContext, JSERR_CantAssignTo);
-    }
-#else
-    return 0;
-#endif
-}
-*/
 
-
-
-
-    int InterpreterStackFrame::OP_GetMemorySize()
+int InterpreterStackFrame::OP_GetMemorySize()
     {
 #ifdef ASMJS_PLAT
         JavascriptArrayBuffer* arr = *(JavascriptArrayBuffer**)GetNonVarReg(AsmJsFunctionMemory::ArrayBufferRegister);

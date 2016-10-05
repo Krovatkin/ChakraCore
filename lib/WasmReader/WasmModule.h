@@ -63,12 +63,13 @@ namespace Wasm
         uint32 GetDataSegCount() const { return m_datasegCount; }
 
         bool AddGlobal(WasmGlobal* g, uint32 index);
-        WasmGlobal* GetGlobal(uint32 index) const;
-        uint32 GetGlobalCount() const { return m_globalCount; }
+        WasmGlobal GetGlobal(uint32 index) const;
+        uint32 GetGlobalCount() const { return m_globalCount + m_importedGlobalCount; }
+        uint32 GetLocalGlobalCount() const { return m_globalCount;  }
         void SetGlobalCount(uint32 count);
         void IncImportGlobalCount() { m_importedGlobalCount++;  }
         void ResetImportGlobalCount() { m_importedGlobalCount = 0; }
-        uint32 GetImportGlobalCount() { return m_importedGlobalCount; }
+        uint32 GetImportGlobalCount() const { return m_importedGlobalCount; }
         
 
         void SetStartFunction(uint32 i);

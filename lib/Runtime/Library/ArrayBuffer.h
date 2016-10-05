@@ -18,49 +18,61 @@ namespace Js
 
     class WasmGlobal : public DynamicObject
     {
-    private:
+        bool m_mutable;
+        bool m_reference;
+        uint m_type;
 
         DEFINE_VTABLE_CTOR(WasmGlobal, DynamicObject);
         DEFINE_MARSHAL_OBJECT_TO_SCRIPT_CONTEXT(WasmGlobal);
-    //protected:
-    //    WasmGlobal(DynamicType * type);
-
+        
     public:
-        uint type;
-        bool mut;
-        bool isRef;
+        
+        bool IsMutable() { return m_mutable;  };
+        void SetMutability(bool mut) { m_mutable = mut; };
 
-        /*
-        struct WasmConst
+        bool IsReference() { return m_reference; };
+        void SetIsReference(bool ref) { m_reference = ref; };
+
+        uint GetType() { return m_type; };
+        void SetType(uint ty) { m_type = ty; };
+
+        union
         {
-            union
-            {
-                float f32;
-                double f64;
-                int32 i32;
-                int64 i64;
-            };
+            Wasm::WasmConstLitNode cnst;
+            Var var;
         };
-        */
-            union
-            {
-                Wasm::WasmConstLitNode cnst;
-                Var var;
-            };
 
- 
-        WasmGlobal(Var val, DynamicType * type) : DynamicObject(type), var(val) {};
-        WasmGlobal(Wasm::WasmConstLitNode c, DynamicType * type) : DynamicObject(type), cnst(c) {};
+        WasmGlobal(Var val, DynamicType * type) : 
+            DynamicObject(type), 
+            var(val), 
+            m_type(0), 
+            m_mutable(false), 
+            m_reference(true) 
+        {};
+
+        WasmGlobal(Wasm::WasmConstLitNode c, DynamicType * type) : 
+            DynamicObject(type), 
+            cnst(c), 
+            m_type(0), 
+            m_mutable(false), 
+            m_reference(false) 
+        {};
+
         static bool Is(Var aValue) { return JavascriptOperators::GetTypeId(aValue) == TypeIds_WasmGlobal; }
         static WasmGlobal* FromVar(Var aValue);
 
+        BOOL GetDiagTypeString(StringBuilder<ArenaAllocator>* stringBuilder, ScriptContext* requestContext) override
+        {
+            stringBuilder->AppendCppLiteral(_u("Object, (WasmGlobal)"));
+            return TRUE;
+        }
 
-        //Var GetValue() const {return value; };
-        //void SetValue(Var val) { value = val; };
+        BOOL GetDiagValueString(StringBuilder<ArenaAllocator>* stringBuilder, ScriptContext* requestContext)
+        {
+            stringBuilder->AppendCppLiteral(_u("[object WasmGlobal]"));
+            return TRUE;
+        }
 
-        //@TODO : implement
-        //virtual BOOL GetDiagValueString(StringBuilder<ArenaAllocator>* stringBuilder, ScriptContext* requestContext) override;
-        //virtual BOOL GetDiagTypeString(StringBuilder<ArenaAllocator>* stringBuilder, ScriptContext* requestContext) override;
     };
 
     class ArrayBufferParent;

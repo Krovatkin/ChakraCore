@@ -761,11 +761,11 @@ WasmBinaryReader::ReadGlobalsSection()
             case  wbF32Const:
             case  wbF64Const:
                 g->cnst = m_currentNode.cnst;
-                g->ptype = WasmGlobal::Const;
+                g->SetReferenceType(WasmGlobal::Const);
                 break;
             case  wbGetGlobal:
                 g->var = m_currentNode.var;
-                g->ptype = WasmGlobal::LocalReference;
+                g->SetReferenceType(WasmGlobal::LocalReference);
                 break;
           
         }
@@ -811,6 +811,10 @@ WasmBinaryReader::ReadImportEntries()
     {
         m_module->AllocateImports(entries);
     }
+
+    uint currentFunctionIndex = 0,
+        currentGlobalIndex = 0;
+
     for (uint32 i = 0; i < entries; ++i)
     {
         uint32 modNameLen = 0, fnNameLen = 0;
@@ -824,7 +828,6 @@ WasmBinaryReader::ReadImportEntries()
 
 
         WasmImport ie {modNameLen , modName , fnNameLen , fnName};
-        
 
         switch (ekind) {
 
@@ -835,15 +838,14 @@ WasmBinaryReader::ReadImportEntries()
             {
                 ThrowDecodingError(_u("Function signature %u is out of bound"), sigId);
             }
-            m_module->SetFunctionImport(i, ie, sigId);
+            m_module->SetFunctionImport(currentFunctionIndex++, ie, sigId);
             break;
         }
         case WasmExternalKinds::Global:
         {
             WasmTypes::WasmType type = ReadWasmType(len);
             bool mutability = ReadConst<UINT8>() == 0; //mutable if the byte is set
-            m_module->IncImportGlobalCount();
-            m_module->SetGlobalImport(i, ie, mutability, type);
+            m_module->SetGlobalImport(currentGlobalIndex++, ie, mutability, type);
             break;
         }
         default:
@@ -854,6 +856,9 @@ WasmBinaryReader::ReadImportEntries()
     
         
     }
+
+    m_module->SetImportGlobalCount(currentGlobalIndex);
+    m_module->SetImportFunctionCount(currentFunctionIndex);
 }
 
 void

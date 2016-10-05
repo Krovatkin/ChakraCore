@@ -16,12 +16,13 @@ namespace Wasm
 
     public:
 
-        enum PointerType { Invalid, Const, LocalReference, ImportedReference };
+        enum ReferenceType { Invalid, Const, LocalReference, ImportedReference };
 
         WasmGlobal(uint32 _type, bool mutability);
-        uint32 getType() const;
-        bool getMutability() const;
-        PointerType ptype;
+        uint32 GetType() const;
+        bool GetMutability() const;
+        ReferenceType GetReferenceType() { return m_rType; };
+        void SetReferenceType(ReferenceType rt) { m_rType = rt; };
 
         union
         {
@@ -32,8 +33,9 @@ namespace Wasm
 
     private:
 
-        uint32 type;
-        bool mutability;
+        ReferenceType m_rType;
+        uint32 m_type;
+        bool m_mutability;
 
         
     };

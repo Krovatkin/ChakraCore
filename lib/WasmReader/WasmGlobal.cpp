@@ -11,22 +11,22 @@ namespace Wasm
 {
 
 WasmGlobal::WasmGlobal(uint32 _type, bool _mutability) : 
-    type(_type), 
-    mutability(_mutability), 
-    ptype(Invalid)
+    m_type(_type), 
+    m_mutability(_mutability), 
+    m_rType(Invalid)
 {
 }
 
 uint32 
-WasmGlobal::getType() const
+WasmGlobal::GetType() const
 {
-    return type;
+    return m_type;
 }
 
 bool
-WasmGlobal::getMutability() const
+WasmGlobal::GetMutability() const
 {
-    return mutability;
+    return m_mutability;
 }
 } // namespace Wasm
 #endif // ENABLE_WASM

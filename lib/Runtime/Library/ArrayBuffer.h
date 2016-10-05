@@ -24,9 +24,9 @@ namespace Js
 
         DEFINE_VTABLE_CTOR(WasmGlobal, DynamicObject);
         DEFINE_MARSHAL_OBJECT_TO_SCRIPT_CONTEXT(WasmGlobal);
-        
+
     public:
-        
+
         bool IsMutable() { return m_mutable;  };
         void SetMutability(bool mut) { m_mutable = mut; };
 
@@ -42,20 +42,20 @@ namespace Js
             Var var;
         };
 
-        WasmGlobal(Var val, DynamicType * type) : 
-            DynamicObject(type), 
-            var(val), 
-            m_type(0), 
-            m_mutable(false), 
-            m_reference(true) 
+        WasmGlobal(Var val, DynamicType * type) :
+            DynamicObject(type),
+            var(val),
+            m_type(0),
+            m_mutable(false),
+            m_reference(true)
         {};
 
-        WasmGlobal(Wasm::WasmConstLitNode c, DynamicType * type) : 
-            DynamicObject(type), 
-            cnst(c), 
-            m_type(0), 
-            m_mutable(false), 
-            m_reference(false) 
+        WasmGlobal(Wasm::WasmConstLitNode c, DynamicType * type) :
+            DynamicObject(type),
+            cnst(c),
+            m_type(0),
+            m_mutable(false),
+            m_reference(false)
         {};
 
         static bool Is(Var aValue) { return JavascriptOperators::GetTypeId(aValue) == TypeIds_WasmGlobal; }

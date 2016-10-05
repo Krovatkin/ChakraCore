@@ -2962,7 +2962,7 @@ namespace Js
         
         m_localSlots[AsmJsFunctionMemory::ModuleEnvRegister] = frame->GetItem(0);
         m_localSlots[AsmJsFunctionMemory::ArrayBufferRegister] = (Var*)frame->GetItem(0) + AsmJsModuleMemory::MemoryTableBeginOffset;
-        m_localSlots[AsmJsFunctionMemory::ArraySizeRegister] = frame->GetLength() > 1 ? frame->GetItem(1) : 0; // do not cache ArraySize in the interpreter
+        m_localSlots[AsmJsFunctionMemory::ArraySizeRegister] = frame->GetLength() > 1 ? frame->GetItem(1) : 0; // GetItem(1) is offset into globals array
         m_localSlots[AsmJsFunctionMemory::ScriptContextBufferRegister] = functionBody->GetScriptContext();
 
         if (PHASE_TRACE1(AsmjsInterpreterStackPhase))
@@ -7693,7 +7693,7 @@ int InterpreterStackFrame::OP_GetGlobalInt(int index)
     {
 #ifdef ASMJS_PLAT
         WasmGlobal* globals = (WasmGlobal*)GetNonVarReg(AsmJsFunctionMemory::ArraySizeRegister);
-        Assert(!globals[index].IsReference()); //no references at this point should have been resolved at link-time.
+        Assert(!globals[index].IsReference()); //no references at this point; everything should have been resolved at link-time.
         return globals[index].cnst.i32;
 #else
         return 0;
@@ -7719,7 +7719,7 @@ void InterpreterStackFrame::OP_SetGlobalInt(const unaligned T* playout)
     
     
 #else
-    return 0;
+    return;
 #endif
 }
 

@@ -10,7 +10,7 @@ namespace Js
 
     WasmGlobal* WasmGlobal::FromVar(Var aValue)
     {
-        AssertMsg(Is(aValue), "var must be an WasmGlobal");
+        AssertMsg(Is(aValue), "var must be a WasmGlobal");
         return static_cast<WasmGlobal *>(RecyclableObject::FromVar(aValue));
     }
 

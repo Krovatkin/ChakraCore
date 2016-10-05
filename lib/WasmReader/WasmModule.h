@@ -53,9 +53,9 @@ namespace Wasm
         uint32 GetImportCount() const { return m_importCount; }
         void SetFunctionImport(uint32 i, WasmImport ie, uint32 sigId);
         void SetGlobalImport(uint32 i, WasmImport ie, bool mut, WasmTypes::WasmType ty);
-        //void SetFunctionImport(uint32 i, uint32 sigId, char16* modName, uint32 modNameLen, char16* fnName, uint32 fnNameLen);
         GlobalImport* GetGlobalImport(uint32 i) const;
         FunctionImport* GetFunctionImport(uint32 i) const;
+        void SetImportFunctionCount(uint count) { m_importCount = count;  }
 
         void AllocateDataSegs(uint32 count);
         bool AddDataSeg(WasmDataSegment* seg, uint32 index);
@@ -64,12 +64,11 @@ namespace Wasm
 
         bool AddGlobal(WasmGlobal* g, uint32 index);
         WasmGlobal GetGlobal(uint32 index) const;
-        uint32 GetGlobalCount() const { return m_globalCount + m_importedGlobalCount; }
+        uint32 GetGlobalCount() const { return m_globalCount + m_importGlobalCount; }
         uint32 GetLocalGlobalCount() const { return m_globalCount;  }
         void SetGlobalCount(uint32 count);
-        void IncImportGlobalCount() { m_importedGlobalCount++;  }
-        void ResetImportGlobalCount() { m_importedGlobalCount = 0; }
-        uint32 GetImportGlobalCount() const { return m_importedGlobalCount; }
+        void SetImportGlobalCount(uint count) { m_importGlobalCount = count; }
+        uint32 GetImportGlobalCount() const { return m_importGlobalCount; }
         
 
         void SetStartFunction(uint32 i);
@@ -112,7 +111,7 @@ namespace Wasm
         uint32 m_importCount;
         uint32 m_datasegCount;
         uint32 m_globalCount;
-        uint32 m_importedGlobalCount;
+        uint32 m_importGlobalCount;
 
         uint32 m_startFuncIndex;
 

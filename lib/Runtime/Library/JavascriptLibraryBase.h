@@ -170,7 +170,6 @@ namespace Js
         RuntimeFunction* promiseConstructor;
         RuntimeFunction* generatorFunctionConstructor;
         RuntimeFunction* asyncFunctionConstructor;
-        RuntimeFunction* wasmGlobalConstructor;
 
         JavascriptFunction* defaultAccessorFunction;
         JavascriptFunction* stackTraceAccessorFunction;

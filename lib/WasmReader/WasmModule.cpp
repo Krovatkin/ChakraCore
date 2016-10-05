@@ -198,7 +198,7 @@ WasmModule::SetGlobalImport(uint32 i, WasmImport ie, bool mut, WasmTypes::WasmTy
 Wasm::GlobalImport*
 WasmModule::GetGlobalImport(uint32 i) const
 {
-    if (i >= m_importCount)
+    if (i >= m_importGlobalCount)
     {
         return nullptr;
     }
@@ -281,7 +281,7 @@ WasmModule::GetGlobal(uint32 index) const
     {
          WasmGlobal global(m_globalImports[index].type, m_globalImports[index].mut);
          global.importVar = &m_globalImports[index];
-         global.ptype = WasmGlobal::ImportedReference;
+         global.SetReferenceType(WasmGlobal::ImportedReference);
          return global;
     }
     

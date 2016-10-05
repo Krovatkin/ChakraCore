@@ -181,7 +181,6 @@ namespace Js
         int OP_GetMemorySize();
 
         int OP_GetGlobalInt(int);
-        //void OP_SetGlobalInt(int, int);
         template <class T> void OP_SetGlobalInt(const unaligned T* playout);
         
 

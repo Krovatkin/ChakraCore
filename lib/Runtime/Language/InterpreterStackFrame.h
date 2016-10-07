@@ -179,6 +179,11 @@ namespace Js
 
         void ValidateRegValue(Var value, bool allowStackVar = false, bool allowStackVarOnDisabledStackNestedFunc = true) const;
         int OP_GetMemorySize();
+
+        int OP_GetGlobalInt(int);
+        template <class T> void OP_SetGlobalInt(const unaligned T* playout);
+        
+
         void ValidateSetRegValue(Var value, bool allowStackVar = false, bool allowStackVarOnDisabledStackNestedFunc = true) const;
         template <typename RegSlotType> Var GetReg(RegSlotType localRegisterID) const;
         template <typename RegSlotType> void SetReg(RegSlotType localRegisterID, Var bValue);

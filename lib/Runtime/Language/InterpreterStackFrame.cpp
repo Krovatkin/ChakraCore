@@ -2956,11 +2956,13 @@ namespace Js
             m_localSimdSlots = (AsmJsSIMDValue*)((char*)m_localSlots + simdByteOffset);
         }
 
+        
         // Load module environment
         FrameDisplay* frame = this->function->GetEnvironment();
+        
         m_localSlots[AsmJsFunctionMemory::ModuleEnvRegister] = frame->GetItem(0);
         m_localSlots[AsmJsFunctionMemory::ArrayBufferRegister] = (Var*)frame->GetItem(0) + AsmJsModuleMemory::MemoryTableBeginOffset;
-        m_localSlots[AsmJsFunctionMemory::ArraySizeRegister] = 0; // do not cache ArraySize in the interpreter
+        m_localSlots[AsmJsFunctionMemory::ArraySizeRegister] = frame->GetLength() > 1 ? frame->GetItem(1) : 0; // GetItem(1) is offset into globals array
         m_localSlots[AsmJsFunctionMemory::ScriptContextBufferRegister] = functionBody->GetScriptContext();
 
         if (PHASE_TRACE1(AsmjsInterpreterStackPhase))
@@ -7687,7 +7689,42 @@ const byte * InterpreterStackFrame::OP_ProfiledLoopBodyStart(const byte * ip)
         m_localSimdSlots[localRegisterID] = bValue;
     }
 
-    int InterpreterStackFrame::OP_GetMemorySize()
+int InterpreterStackFrame::OP_GetGlobalInt(int index)
+    {
+#ifdef ASMJS_PLAT
+        WasmGlobal* globals = (WasmGlobal*)GetNonVarReg(AsmJsFunctionMemory::ArraySizeRegister);
+        Assert(!globals[index].IsReference()); //no references at this point; everything should have been resolved at link-time.
+        return globals[index].cnst.i32;
+#else
+        return 0;
+#endif
+    }
+
+
+template <class T>
+void InterpreterStackFrame::OP_SetGlobalInt(const unaligned T* playout)
+{
+#ifdef ASMJS_PLAT
+    WasmGlobal* globals = (WasmGlobal*)GetNonVarReg(AsmJsFunctionMemory::ArraySizeRegister);
+    uint index = GetRegRawInt(playout->I0);
+    int32 val = GetRegRawInt(playout->I1);
+    WasmGlobal& global = globals[index];
+
+    if (global.GetType() != Wasm::WasmTypes::I32 || !global.IsMutable())
+    {
+        JavascriptError::ThrowError(scriptContext, JSERR_CantAssignTo);
+    }
+
+    global.cnst.i32 = val;
+    
+    
+#else
+    return;
+#endif
+}
+
+
+int InterpreterStackFrame::OP_GetMemorySize()
     {
 #ifdef ASMJS_PLAT
         JavascriptArrayBuffer* arr = *(JavascriptArrayBuffer**)GetNonVarReg(AsmJsFunctionMemory::ArrayBufferRegister);

@@ -61,6 +61,7 @@ namespace Wasm
         void ReadImportEntries();
         void ReadStartFunction();
         void ReadNamesSection();
+        void ReadGlobalsSection();
 
         // Primitive reader
         template <WasmTypes::WasmType type> void ConstNode();
@@ -75,6 +76,7 @@ namespace Wasm
         bool EndOfModule();
         DECLSPEC_NORETURN void ThrowDecodingError(const char16* msg, ...);
         Wasm::WasmTypes::WasmType ReadWasmType(uint32& length);
+        WasmExternalKinds::WasmExternalKind ReadExternalKind(uint32& length);
 
         ArenaAllocator* m_alloc;
         uint m_funcNumber;

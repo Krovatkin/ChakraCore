@@ -257,6 +257,9 @@ namespace Js
         DynamicObject* simdFloat32x4Prototype;
         DynamicObject* simdFloat64x2Prototype;
 
+        //Wasm Prototypes
+        DynamicObject* wasmGlobalPrototype;
+
         JavascriptBoolean* booleanTrue;
         JavascriptBoolean* booleanFalse;
 

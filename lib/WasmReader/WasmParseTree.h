@@ -23,6 +23,18 @@ namespace Wasm
         bool IsLocalType(WasmTypes::WasmType type);
     }
 
+    namespace WasmExternalKinds
+    {
+        enum WasmExternalKind
+        {
+            Function,
+            Table,
+            Memory,
+            Global,
+            Limit
+        };
+    };
+
     struct WasmOpCodeSignatures
     {
 #define WASM_SIGNATURE(id, nTypes, ...) static const WasmTypes::WasmType id[nTypes]; DebugOnly(static const int n##id = nTypes;)
@@ -36,6 +48,9 @@ namespace Wasm
         wbFuncEnd,
         wbLimit
     };
+
+
+
 
     struct WasmConstLitNode
     {
@@ -102,15 +117,30 @@ namespace Wasm
         uint32 funcIndex;
         uint32 nameLength;
         char16* name;
+        WasmExternalKinds::WasmExternalKind ekind;
     };
 
     struct WasmImport
     {
-        uint32 sigId;
         uint32 modNameLen;
         char16* modName;
         uint32 fnNameLen;
         char16* fnName;
     };
+
+    struct FunctionImport : public WasmImport 
+    {
+        uint32 sigId;
+    };
+
+    struct GlobalImport : public WasmImport
+    {
+        bool mut;
+        WasmTypes::WasmType type;
+    };
+
+
+
+
 
 }

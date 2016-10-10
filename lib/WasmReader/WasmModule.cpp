@@ -28,7 +28,8 @@ WasmModule::WasmModule(Js::ScriptContext* scriptContext, byte* binaryBuffer, uin
     heapOffset(0),
     funcOffset(0),
     importFuncOffset(0),
-    globalCounts {0, 0, 0, 0}
+    globalCounts {0, 0, 0, 0},
+    globals (&m_alloc)
 {
     m_reader = Anew(&m_alloc, WasmBinaryReader, &m_alloc, this, binaryBuffer, binaryBufferLength);
     m_reader->InitializeReader();
@@ -220,11 +221,12 @@ void WasmModule::AllocateFunctionExports(uint32 entries)
     m_exportCount = entries;
 }
 
-void WasmModule::SetFunctionExport(uint32 iExport, uint32 funcIndex, char16* exportName, uint32 nameLength)
+void WasmModule::SetFunctionExport(uint32 iExport, uint32 funcIndex, char16* exportName, uint32 nameLength, ImportKinds::ImportKind kind)
 {
     m_exports[iExport].funcIndex = funcIndex;
     m_exports[iExport].nameLength = nameLength;
     m_exports[iExport].name = exportName;
+    m_exports[iExport].kind = kind;
 }
 
 Wasm::WasmExport* WasmModule::GetFunctionExport(uint32 iExport) const
@@ -244,7 +246,7 @@ WasmModule::AllocateFunctionImports(uint32 entries)
 }
 
 void
-WasmModule::SetFunctionImport(uint32 i, uint32 sigId, char16* modName, uint32 modNameLen, char16* fnName, uint32 fnNameLen)
+WasmModule::SetFunctionImport(uint32 i, uint32 sigId, char16* modName, uint32 modNameLen, char16* fnName, uint32 fnNameLen, ImportKinds::ImportKind kind)
 {
     m_imports[i].sigId = sigId;
     m_imports[i].modNameLen = modNameLen;
@@ -292,29 +294,6 @@ WasmModule::GetDataSeg(uint32 index) const
     return m_datasegs[index];
 }
 
-void WasmModule::SetGlobalCount(uint32 count)
-{
-    Assert(m_globalCount == 0 && m_globals == nullptr);
-    m_globalCount = count;
-    m_globals = AnewArray(&m_alloc, WasmGlobal*, count);
-}
-
-bool
-WasmModule::AddGlobal(WasmGlobal* g, uint32 index)
-{
-    Assert(index < m_globalCount);
-    m_globals[index] = g;
-    return true;
-}
-
-WasmGlobal*
-WasmModule::GetGlobal(uint32 index) const
-{
-    Assert(index < m_globalCount);
-    return m_globals[index];
-    
-}
-
 void
 WasmModule::SetStartFunction(uint32 i)
 {
@@ -346,7 +325,7 @@ uint32 WasmModule::GetModuleEnvironmentSize() const
     // reserve space for as many function tables as there are signatures, though we won't fill them all
     size = UInt32Math::Add(size, GetSignatureCount());
     size = UInt32Math::Add(size, GetImportCount());
-    size = UInt32Math::Add(size, GetGlobalCount()*sizeof(WasmGlobal));
+    size = UInt32Math::Add(size, globals.Count()*sizeof(double));
     return size;
 }
 
@@ -362,6 +341,40 @@ void WasmModule::Dispose(bool isShutdown)
 
 void WasmModule::Mark(Recycler * recycler)
 {
+}
+
+uint WasmModule::GetOffsetForGlobal(WasmGlobal* global)
+{
+
+    static const double slotSizes[] =
+    { WAsmJs::INT_SLOTS_SPACE, //I32
+        0, //I64
+        WAsmJs::FLOAT_SLOTS_SPACE, //F32
+        WAsmJs::DOUBLE_SLOTS_SPACE //F64
+    };
+
+    static const double rounds[] =
+    {
+        0.5, //I32
+        0,   //I64
+        0.5,   //F32
+        0    //F64
+    };
+
+    //Assert(type > WasmTypes::Void && type < WasmTypes::Limit);
+    uint type = global->GetType() - 1; //0-based
+
+    uint offset = (uint)(GetGlobalOffset() / slotSizes[type] + rounds[type]);
+
+    for (int i = 0; i < (int) (type - 1); i++)
+    {
+        uint slotsInIthType = (int32)(globalCounts[i] * slotSizes[i] + rounds[i]);
+        offset += (uint)(slotsInIthType / slotSizes[type] + rounds[type]);
+    }
+
+    offset += (uint)(global->GetOffset() / slotSizes[type] + rounds[type]);
+
+    return offset;
 }
 
 } // namespace Wasm

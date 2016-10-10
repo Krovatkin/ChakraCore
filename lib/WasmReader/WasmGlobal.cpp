@@ -10,30 +10,16 @@
 namespace Wasm
 {
 
-WasmGlobal::WasmGlobal(ArenaAllocator * alloc, uint32 _type, bool _mutability) : 
-    type(_type), 
-    mutability(_mutability), 
-    init(nullptr)
+WasmTypes::WasmType
+WasmGlobal::GetType() const
 {
-}
-
-uint32 
-WasmGlobal::getType() const
-{
-    return type;
+    return m_type;
 }
 
 bool
-WasmGlobal::getMutability() const
+WasmGlobal::GetMutability() const
 {
-    return mutability;
+    return m_mutability;
 }
-
-WasmNode*
-WasmGlobal::getInit() const
-{
-    return init;
-}
-
 } // namespace Wasm
 #endif // ENABLE_WASM

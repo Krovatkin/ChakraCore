@@ -10,27 +10,33 @@ namespace Wasm
 
     class WasmGlobal
     {
-    public:
-        WasmGlobal(ArenaAllocator * alloc, uint32 _type, bool mutability);
-        uint32 getType() const;
-        bool getMutability() const;
-        //WasmNode* getInit() const;
+        
 
+    public:
+
+        enum ReferenceType { Invalid, Const, LocalReference, ImportedReference };
+
+        WasmGlobal(uint offset, WasmTypes::WasmType type, bool mutability) : m_type(type), m_mutability(mutability), m_offset(offset) {};
+        WasmTypes::WasmType GetType() const;
+        bool GetMutability() const;
+        ReferenceType GetReferenceType() { return m_rType; }
+        void SetReferenceType(ReferenceType rt) { m_rType = rt; }
+        uint GetOffset() { return m_offset; }
+        void SetOffset(uint offset) { m_offset = offset; }
 
         union
         {
             WasmConstLitNode cnst;
             WasmVarNode var;
-            //WasmNode* init;
-            void* import;
+            WasmImport* importVar;
         };
 
     private:
-        //ArenaAllocator * m_alloc;
 
-        uint32 type;
-        bool mutability;
-
+        ReferenceType m_rType;
+        WasmTypes::WasmType m_type;
+        bool m_mutability;
+        uint m_offset;
         
     };
 } // namespace Wasm

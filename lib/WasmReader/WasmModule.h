@@ -4,6 +4,7 @@
 //-------------------------------------------------------------------------------------------------------
 
 #pragma once
+#include "WasmGlobal.h"
 
 namespace Wasm
 {
@@ -55,12 +56,12 @@ namespace Wasm
 
         void AllocateFunctionExports(uint32 entries);
         uint GetExportCount() const { return m_exportCount; }
-        void SetFunctionExport(uint32 iExport, uint32 funcIndex, char16* exportName, uint32 nameLength);
+        void SetFunctionExport(uint32 iExport, uint32 funcIndex, char16* exportName, uint32 nameLength, ImportKinds::ImportKind kind);
         WasmExport* GetFunctionExport(uint32 iExport) const;
 
         void AllocateFunctionImports(uint32 entries);
         uint32 GetImportCount() const { return m_importCount; }
-        void SetFunctionImport(uint32 i, uint32 sigId, char16* modName, uint32 modNameLen, char16* fnName, uint32 fnNameLen);
+        void SetFunctionImport(uint32 i, uint32 sigId, char16* modName, uint32 modNameLen, char16* fnName, uint32 fnNameLen, ImportKinds::ImportKind kind);
         WasmImport* GetFunctionImport(uint32 i) const;
 
         void AllocateDataSegs(uint32 count);
@@ -68,10 +69,11 @@ namespace Wasm
         WasmDataSegment* GetDataSeg(uint32 index) const;
         uint32 GetDataSegCount() const { return m_datasegCount; }
 
-        bool AddGlobal(WasmGlobal* g, uint32 index);
-        WasmGlobal* GetGlobal(uint32 index) const;
-        uint32 GetGlobalCount() const { return m_globalCount; }
-        void SetGlobalCount(uint32 count);
+        //@TODO REMOVE
+        //bool AddGlobal(WasmGlobal* g, uint32 index);
+        //WasmGlobal* GetGlobal(uint32 index) const;
+        //uint32 GetGlobalCount() const { return m_globalCount; }
+        //void SetGlobalCount(uint32 count);
         
 
         void SetStartFunction(uint32 i);
@@ -90,7 +92,9 @@ namespace Wasm
         void SetTableEnvironmentOffset(uint val) { indirFuncTableOffset = val; }
         uint GetGlobalOffset() const { return globalOffset;  }
         void SetGlobalOffset(uint val) { globalOffset = val; }
-
+        uint GetOffsetForGlobal(WasmGlobal* global);
+        void SetImportGlobalCount(uint count) { importGlobalCount = count;  }
+        uint GetImportGlobalCount() { return importGlobalCount; }
 
         WasmBinaryReader* GetReader() const { return m_reader; }
 
@@ -99,6 +103,7 @@ namespace Wasm
         virtual void Mark(Recycler * recycler) override;
 
         uint globalCounts[NUMBER_TYPES];
+        JsUtil::List<WasmGlobal*, ArenaAllocator> globals;
 
     private:
         WasmSignature** m_signatures;
@@ -126,5 +131,6 @@ namespace Wasm
         uint importFuncOffset;
         uint indirFuncTableOffset;
         uint globalOffset;
+        uint importGlobalCount;
     };
 } // namespace Wasm

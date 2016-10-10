@@ -9,6 +9,8 @@ namespace Wasm
 {
     class WasmBinaryReader;
 
+    static const uint NUMBER_TYPES = 4;
+
     class WasmModule : public FinalizableObject
     {
     private:
@@ -85,6 +87,8 @@ namespace Wasm
         virtual void Finalize(bool isShutdown) override;
         virtual void Dispose(bool isShutdown) override;
         virtual void Mark(Recycler * recycler) override;
+
+        uint globalCounts[NUMBER_TYPES];
 
     private:
         WasmSignature** m_signatures;

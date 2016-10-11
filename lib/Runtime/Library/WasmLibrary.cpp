@@ -266,6 +266,7 @@ namespace Js
                     break;
                 case Wasm::ImportKinds::Global:
                     Wasm::WasmGlobal* global = wasmModule->globals.Item(funcExport->funcIndex);
+                    Assert(global->GetReferenceType() == Wasm::WasmGlobal::Const); //every global has to be resolved by this point 
                     switch (global->GetType()) 
                     {
                     case Wasm::WasmTypes::I32:
@@ -348,11 +349,6 @@ namespace Js
             Wasm::WasmGlobal* global = wasmModule->globals.Item(i);
             Var prop = GetImportVariable(global->importVar, ctx, ffi);
 
-            if (!JavascriptNumber::Is(prop))
-            {
-                throw Wasm::WasmCompilationException(_u("Import global %s.%s (%d) is invalid"), global->importVar->modName, global->importVar->fnName, i);
-            }
-            
             uint offset = wasmModule->GetOffsetForGlobal(global);
             global->SetReferenceType(Wasm::WasmGlobal::Const);
             switch (global->GetType())
@@ -361,10 +357,18 @@ namespace Js
             {
                 int val;
                 bool isInt32;
-                bool isInt = JavascriptNumber::TryGetInt32OrUInt32Value(JavascriptNumber::GetValue(prop), &val, &isInt32);
-                if (!isInt)
+
+                if (TaggedInt::Is(prop)) 
                 {
-                    throw Wasm::WasmCompilationException(_u("Import global %s.%s (%d) must be i32"), global->importVar->modName, global->importVar->fnName, i);
+                    val = TaggedInt::ToInt32(prop);
+                }
+                else 
+                {
+                    bool isInt = JavascriptNumber::TryGetInt32OrUInt32Value(JavascriptNumber::GetValue(prop), &val, &isInt32);
+                    if (!isInt)
+                    {
+                        throw Wasm::WasmCompilationException(_u("Import global %s.%s (%d) must be i32"), global->importVar->modName, global->importVar->fnName, i);
+                    }
                 }
                 global->cnst.i32 = val; //resolve global to const
                 SetGlobalValue(moduleEnv, offset, val);
@@ -418,6 +422,8 @@ namespace Js
             {
                 Assert(global->GetReferenceType() == Wasm::WasmGlobal::LocalReference); //no imported globals at this point
                 sourceGlobal = wasmModule->globals.Item(global->var.num);
+                global->SetReferenceType(Wasm::WasmGlobal::Const); //resolve global to const
+                global->cnst = sourceGlobal->cnst; 
 
                 Assert(sourceGlobal->GetReferenceType() == Wasm::WasmGlobal::Const);
                 if (sourceGlobal->GetType() != global->GetType())

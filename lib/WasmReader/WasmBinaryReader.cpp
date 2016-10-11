@@ -540,10 +540,6 @@ void WasmBinaryReader::ConstNode()
 bool
 WasmBinaryReader::EndOfFunc()
 {
-    if (*m_pc == wbEnd) 
-    {
-        return true;
-    }
     return m_funcState.count >= m_funcState.size;
 }
 
@@ -896,6 +892,10 @@ WasmBinaryReader::ReadImportEntries()
 {
     uint32 len = 0;
     uint32 entries = LEB128(len);
+    
+    uint importFunctionCount = 0; //TODO: we are probably much better of using lists
+    uint importGlobalCount = 0;
+
     if (entries > 0)
     {
         m_module->AllocateFunctionImports(entries);
@@ -918,6 +918,7 @@ WasmBinaryReader::ReadImportEntries()
                 ThrowDecodingError(_u("Function signature %u is out of bound"), sigId);
             }
             m_module->SetFunctionImport(i, sigId, modName, modNameLen, fnName, fnNameLen, kind);
+            importFunctionCount++;
             break;
         }
         case ImportKinds::Global:
@@ -936,6 +937,7 @@ WasmBinaryReader::ReadImportEntries()
             importedGlobal->importVar = wi;
             importedGlobal->SetReferenceType(WasmGlobal::ImportedReference);
             m_module->globals.Add(importedGlobal);
+            importGlobalCount++;
             break;
         }
         case ImportKinds::Table:
@@ -945,6 +947,8 @@ WasmBinaryReader::ReadImportEntries()
             break;
         }
     }
+    m_module->SetImportGlobalCount(importGlobalCount);
+    m_module->SetImportCount(importFunctionCount);
 }
 
 void

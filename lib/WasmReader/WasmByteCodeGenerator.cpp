@@ -108,6 +108,7 @@ WasmModuleGenerator::GenerateModule()
     };
     afterSectionCallback[bSectGlobal] = [](WasmModuleGenerator* gen) {
         gen->m_module->SetGlobalOffset(gen->m_module->GetFuncOffset() + gen->m_module->GetTableEnvironmentOffset());
+        gen->m_module->globalCounts[0] = gen->m_module->GetGlobalOffset();
     };
 
     afterSectionCallback[bSectFunctionBodies] = [](WasmModuleGenerator* gen) {
@@ -589,10 +590,7 @@ WasmBytecodeGenerator::EmitGetGlobal()
 
     WasmTypes::WasmType type = global->GetType();
 
-    uint slot = m_module->GetOffsetForGlobal(global);
-
-    Js::RegSlot constIndexReg = m_i32RegSlots.AcquireTmpRegister();
-    m_writer.AsmInt1Const1(Js::OpCodeAsmJs::Ld_IntConst, constIndexReg, slot);
+    Js::RegSlot slot = m_module->GetOffsetForGlobal(global);
 
     static const Js::OpCodeAsmJs globalOpcodes[] = { 
         Js::OpCodeAsmJs::LdSlot_Int,
@@ -607,7 +605,8 @@ WasmBytecodeGenerator::EmitGetGlobal()
     Js::RegSlot tmpReg = regSpace->AcquireTmpRegister();
     EmitInfo info(tmpReg, type);
 
-    m_writer.AsmReg2(globalOpcodes[type - 1], tmpReg, constIndexReg);
+    m_writer.AsmSlot(globalOpcodes[type - 1], tmpReg, WasmBytecodeGenerator::ModuleEnvRegister, slot);
+    
     return info;
 }
 
@@ -616,7 +615,7 @@ WasmBytecodeGenerator::EmitSetGlobal()
 {
     uint globalIndex = GetReader()->m_currentNode.var.num;
     WasmGlobal* global = m_module->globals.Item(globalIndex);
-    uint slot = m_module->GetOffsetForGlobal(global);
+    Js::RegSlot slot = m_module->GetOffsetForGlobal(global);
 
     WasmTypes::WasmType type = global->GetType();
     EmitInfo info = PopEvalStack();
@@ -635,12 +634,7 @@ WasmBytecodeGenerator::EmitSetGlobal()
         Js::OpCodeAsmJs::StSlot_Db
     };
 
-    Js::RegSlot constIndexReg = m_i32RegSlots.AcquireTmpRegister();
-    m_writer.AsmInt1Const1(Js::OpCodeAsmJs::Ld_IntConst, constIndexReg, slot);
-    m_writer.AsmReg2(globalOpcodes[type - 1], constIndexReg, info.location);
-
-
-    m_i32RegSlots.ReleaseTmpRegister(constIndexReg);
+    m_writer.AsmSlot(globalOpcodes[type - 1], info.location, WasmBytecodeGenerator::ModuleEnvRegister, slot);
     ReleaseLocation(&info);
 
     return EmitInfo();

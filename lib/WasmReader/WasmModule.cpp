@@ -28,7 +28,7 @@ WasmModule::WasmModule(Js::ScriptContext* scriptContext, byte* binaryBuffer, uin
     heapOffset(0),
     funcOffset(0),
     importFuncOffset(0),
-    globalCounts {0, 0, 0, 0},
+    globalCounts {0, 0, 0, 0, 0}, // 0 is the number of vars before WasmTypes::I32
     globals (&m_alloc)
 {
     m_reader = Anew(&m_alloc, WasmBinaryReader, &m_alloc, this, binaryBuffer, binaryBufferLength);
@@ -319,13 +319,14 @@ void WasmModule::SetSignatureCount(uint32 count)
 
 uint32 WasmModule::GetModuleEnvironmentSize() const
 {
+    static const uint DOUBLE_SIZE_IN_INTS = sizeof(double) / sizeof(int);
     // 1 for the heap
     uint32 size = 1;
     size = UInt32Math::Add(size, GetWasmFunctionCount());
     // reserve space for as many function tables as there are signatures, though we won't fill them all
     size = UInt32Math::Add(size, GetSignatureCount());
     size = UInt32Math::Add(size, GetImportCount());
-    size = UInt32Math::Add(size, globals.Count()*sizeof(double));
+    size = UInt32Math::Add(size, globals.Count() * DOUBLE_SIZE_IN_INTS); //a tad bit overestimating 
     return size;
 }
 
@@ -343,6 +344,28 @@ void WasmModule::Mark(Recycler * recycler)
 {
 }
 
+
+uint WasmModule::GetOffsetForGlobal(WasmGlobal* global)
+{
+    static const uint slotSizesInInts[] =
+    {   sizeof(Js::Var)/sizeof(int), //Var
+        1, //I32
+        2, //I64
+        1, //F32
+        2  //F64
+    };
+
+    double sizeInInts = 0;
+    WasmTypes::WasmType type = global->GetType();
+
+    for (uint i = 0; i < (uint) type; i++)
+        sizeInInts += globalCounts[i] * slotSizesInInts[i];
+
+    sizeInInts += global->GetOffset() * slotSizesInInts[type];
+    return (uint)(sizeInInts / slotSizesInInts[type] + 0.5 /*no half doubles or longs */); 
+}
+
+/*
 uint WasmModule::GetOffsetForGlobal(WasmGlobal* global)
 {
 
@@ -361,12 +384,14 @@ uint WasmModule::GetOffsetForGlobal(WasmGlobal* global)
         0    //F64
     };
 
-    //Assert(type > WasmTypes::Void && type < WasmTypes::Limit);
-    uint type = global->GetType() - 1; //0-based
+    uint type = global->GetType();
+    Assert(type > WasmTypes::Void && type < WasmTypes::Limit); //asserts need to be sandwiched between "uint type" and "type--"
+    Assert(type != WasmTypes::I64); //not implemented
+    type--; //0-based
 
     uint offset = (uint)(GetGlobalOffset() / slotSizes[type] + rounds[type]);
 
-    for (int i = 0; i < (int) (type - 1); i++)
+    for (int i = 0; i < (int) type; i++)
     {
         uint slotsInIthType = (int32)(globalCounts[i] * slotSizes[i] + rounds[i]);
         offset += (uint)(slotsInIthType / slotSizes[type] + rounds[type]);
@@ -376,6 +401,8 @@ uint WasmModule::GetOffsetForGlobal(WasmGlobal* global)
 
     return offset;
 }
+*/
+
 
 } // namespace Wasm
 

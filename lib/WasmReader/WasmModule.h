@@ -10,7 +10,7 @@ namespace Wasm
 {
     class WasmBinaryReader;
 
-    static const uint NUMBER_TYPES = 4;
+    static const uint NUMBER_TYPES = 5;
 
     class WasmModule : public FinalizableObject
     {
@@ -61,6 +61,7 @@ namespace Wasm
 
         void AllocateFunctionImports(uint32 entries);
         uint32 GetImportCount() const { return m_importCount; }
+        void SetImportCount(uint count) { m_importCount = count;  }
         void SetFunctionImport(uint32 i, uint32 sigId, char16* modName, uint32 modNameLen, char16* fnName, uint32 fnNameLen, ImportKinds::ImportKind kind);
         WasmImport* GetFunctionImport(uint32 i) const;
 

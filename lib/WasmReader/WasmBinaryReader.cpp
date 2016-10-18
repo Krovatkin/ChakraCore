@@ -739,7 +739,13 @@ WasmBinaryReader::ReadElementSection()
             ThrowDecodingError(_u("Invalid table index %d"), index);
         }
 
-        uint32 offset = ReadIntConstExpr(_u("Only int32.const supported for element offset"));
+        WasmNode initExpr = ReadInitExpr();
+        if (initExpr.op != wbI32Const)
+        {
+            ThrowDecodingError(_u("Only int32.const supported for element offset"));
+        }
+
+        uint32 offset = initExpr.cnst.i32;
         uint32 numElem = LEB128(length);
         uint32 end = UInt32Math::Add(offset, numElem);
         if (end > m_module->GetTableSize())
@@ -783,7 +789,12 @@ WasmBinaryReader::ReadDataSegments()
         }
         TRACE_WASM_DECODER(L"Data Segment #%u", i);
 
-        UINT32 offset = ReadIntConstExpr(_u("Only i32.const supported for data segment offset"));
+        WasmNode initExpr = ReadInitExpr();
+        if (initExpr.op != wbI32Const)
+        {
+            ThrowDecodingError(_u("Only i32.const supported for data segment offset"));
+        }
+        UINT32 offset = initExpr.cnst.i32;
         UINT32 dataByteLen = LEB128(len);
         WasmDataSegment *dseg = Anew(m_alloc, WasmDataSegment, m_alloc, offset, dataByteLen, m_pc);
         CheckBytesLeft(dataByteLen);
@@ -827,10 +838,26 @@ WasmBinaryReader::ReadGlobalsSection()
         WasmTypes::WasmType type = ReadWasmType(len);
         bool mutability = ReadConst<UINT8>() == 1;
         WasmGlobal* global = Anew(m_alloc, WasmGlobal, m_module->globalCounts[type]++, type, mutability);
-        ReadInitExpr(global);
+
+        WasmNode globalNode = ReadInitExpr();
+        switch (globalNode.op) {
+        case  wbI32Const:
+        case  wbI64Const:
+        case  wbF32Const:
+        case  wbF64Const:
+            global->SetReferenceType(WasmGlobal::Const);
+            global->cnst = globalNode.cnst;
+            break;
+        case  wbGetGlobal:
+            global->SetReferenceType(WasmGlobal::LocalReference);
+            global->var = globalNode.var;
+            break;
+        default:
+            Assert(UNREACHED);
+        }
+
         m_module->globals.Add(global);
     }
-
 }
 
 char16* WasmBinaryReader::ReadInlineName(uint32& length, uint32& nameLength)
@@ -984,49 +1011,30 @@ WasmBinaryReader::SLEB128(UINT &length)
     return result;
 }
 
-UINT32
-WasmBinaryReader::ReadIntConstExpr(char16* msg)
+WasmNode
+WasmBinaryReader::ReadInitExpr()
 {
     m_funcState.count = 0;
-    m_funcState.size = (UINT)(m_end - m_pc);
+    m_funcState.size = 123456; // some aribtrary big value
     ReadExpr();
     WasmNode node = m_currentNode;
-    if (node.op != wbI32Const)
+    switch (node.op)
     {
-        ThrowDecodingError(_u("Invalid initexpr opcode. Int32 Const expected."));
+    case wbI32Const:
+    case wbF32Const:
+    case wbI64Const:
+    case wbF64Const:
+    case wbGetGlobal:
+        break;
+    default:
+        ThrowDecodingError(_u("Invalid initexpr opcode"));
     }
 
     if (ReadExpr() != wbEnd)
     {
         ThrowDecodingError(_u("Missing end opcode after init expr"));
     }
-    return node.cnst.i32;
-}
-
-void
-WasmBinaryReader::ReadInitExpr(WasmGlobal* global)
-{
-    m_funcState.count = 0;
-    m_funcState.size = (UINT)(m_end - m_pc);
-    WasmOp op = ReadExpr();
-    switch (op) {
-    case  wbI32Const:
-    case  wbI64Const:
-    case  wbF32Const:
-    case  wbF64Const:
-        global->SetReferenceType(WasmGlobal::Const);
-        global->cnst = m_currentNode.cnst;
-        break;
-    case  wbGetGlobal:
-        global->SetReferenceType(WasmGlobal::LocalReference);
-        global->var = m_currentNode.var;
-        break;
-    }
-
-    if (ReadExpr() != wbEnd)
-    {
-        ThrowDecodingError(_u("Missing end opcode after init expr"));
-    }
+    return node;
 }
 
 template <typename T>

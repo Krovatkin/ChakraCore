@@ -230,9 +230,17 @@ void WebAssemblyInstance::BuildObject(WebAssemblyModule * wasmModule, ScriptCont
                 obj = *memory;
                 break;
             case Wasm::ExternalKinds::Function:
-
+            {
                 obj = GetFunctionObjFromFunctionIndex(wasmModule, ctx, wasmExport->index, localModuleFunctions, importFunctions);
+                JavascriptFunction * jf = JavascriptFunction::FromVar(obj);
+                Var arity = JavascriptNumber::ToVar(wasmModule->GetFunctionSignature(wasmExport->index)->GetParamCount(), ctx);
+                jf->SetPropertyWithAttributes(PropertyIds::length, arity, PropertyConfigurable, nullptr);
+
+                Var indexAsName = JavascriptNumber::ToVar(wasmExport->index, ctx);
+                indexAsName = JavascriptConversion::ToString(indexAsName, ctx);
+                jf->SetPropertyWithAttributes(PropertyIds::name, indexAsName, PropertyConfigurable, nullptr);
                 break;
+            }
             case Wasm::ExternalKinds::Global:
                 Wasm::WasmGlobal* global = wasmModule->GetGlobal(wasmExport->index);
                 Assert(global->GetReferenceType() == Wasm::WasmGlobal::Const); //every global has to be resolved by this point

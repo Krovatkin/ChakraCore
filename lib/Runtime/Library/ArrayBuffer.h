@@ -227,6 +227,7 @@ namespace Js
             if (!arrayAddress)
             {
                 VirtualFree(address, 0, MEM_RELEASE);
+                return nullptr;
             }
             return arrayAddress;
 #else

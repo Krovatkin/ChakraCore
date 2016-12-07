@@ -139,9 +139,32 @@ WebAssemblyMemory::GrowInternal(uint32 deltaPages)
         return -1;
     }
 
-    ArrayBuffer * newBuffer = m_buffer->TransferInternal(newBytes);
-    m_buffer = newBuffer;
+    ArrayBuffer * newBuffer = nullptr;
+    JavascriptExceptionObject* caughtExceptionObject = nullptr;
+    try
+    {
+        newBuffer = m_buffer->TransferInternal(newBytes);
+    }
+    catch (const JavascriptException& err)
+    {
+        caughtExceptionObject = err.GetAndClear();
+        Assert(caughtExceptionObject);
+        //Propagate if not OOM
+        if (caughtExceptionObject != ThreadContext::GetContextForCurrentThread()->GetPendingOOMErrorObject())
+        {
+            caughtExceptionObject = caughtExceptionObject->CloneIfStaticExceptionObject(GetScriptContext());
+            JavascriptExceptionOperators::DoThrow(caughtExceptionObject, GetScriptContext());
+        }
+        return -1;
+    }
 
+    Assert(newBuffer);
+    if (!newBuffer->GetByteLength() && m_buffer->GetByteLength() < newBytes)
+    {
+        return -1; //malloc in TransferInternal returns NULL and OOM wasn't thrown
+    }
+
+    m_buffer = newBuffer;
     CompileAssert(ArrayBuffer::MaxArrayBufferLength / WebAssembly::PageSize <= INT32_MAX);
     return (int32)oldPageCount;
 }

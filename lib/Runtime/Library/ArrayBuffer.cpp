@@ -769,6 +769,10 @@ namespace Js
                 {
                     // we are transferring from an unoptimized buffer, but new length can be optimized, so move to that
                     newBuffer = (BYTE*)JavascriptArrayBuffer::AllocWrapper(newBufferLength);
+                    if (!newBuffer)
+                    {
+                        JavascriptError::ThrowOutOfMemoryError(GetScriptContext());
+                    }
                     MemCpyZero(newBuffer, newBufferLength, this->buffer, this->bufferLength);
                 }
                 else if (newBufferLength != this->bufferLength)

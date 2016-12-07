@@ -143,4 +143,10 @@
     <tags>exclude_serialized,exclude_jshost,exclude_snap,require_debugger</tags>
   </default>
 </test>
+<test>
+    <default>
+       <files>oom.js</files>
+       <compile-flags>-wasm</compile-flags>
+    </default>
+</test>
 </regress-exe>

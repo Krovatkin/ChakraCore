@@ -7810,29 +7810,9 @@ const byte * InterpreterStackFrame::OP_ProfiledLoopBodyStart(const byte * ip)
     int InterpreterStackFrame::OP_GrowMemory(int32 delta)
     {
 #ifdef ENABLE_WASM
-
-        int32 oldPageCount = -1;
-        JavascriptExceptionObject* caughtExceptionObject = nullptr;
-        try
-        {
-            oldPageCount = m_wasmMemory->GrowInternal((uint32)delta);
-        }
-        catch (const JavascriptException& err)
-        {
-            caughtExceptionObject = err.GetAndClear();
-            Assert(caughtExceptionObject);
-            //Propagate if not OOM
-            if (caughtExceptionObject != ThreadContext::GetContextForCurrentThread()->GetPendingOOMErrorObject())
-            {
-                caughtExceptionObject = caughtExceptionObject->CloneIfStaticExceptionObject(scriptContext);
-                JavascriptExceptionOperators::DoThrow(caughtExceptionObject, scriptContext);
-            }
-            //oldPageCount is -1
-        }
-
+        int oldPageCount = m_wasmMemory->GrowInternal((uint32)delta);
         SetNonVarReg(AsmJsFunctionMemory::ArrayBufferRegister, m_wasmMemory->GetBuffer());
         return oldPageCount;
-
 #else
         Assert(UNREACHED);
         return 0;

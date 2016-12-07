@@ -218,16 +218,15 @@ namespace Js
         {
 #if _WIN64
             LPVOID address = VirtualAlloc(nullptr, MAX_ASMJS_ARRAYBUFFER_LENGTH, MEM_RESERVE, PAGE_NOACCESS);
-            //throw out of memory
+ 
             if (!address)
             {
-                Js::Throw::OutOfMemory();
+                return nullptr;
             }
             LPVOID arrayAddress = VirtualAlloc(address, length, MEM_COMMIT, PAGE_READWRITE);
             if (!arrayAddress)
             {
                 VirtualFree(address, 0, MEM_RELEASE);
-                Js::Throw::OutOfMemory();
             }
             return arrayAddress;
 #else

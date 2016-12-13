@@ -14,6 +14,7 @@ FAULT_TYPE(StackProbe)
 FAULT_TYPE(ScriptTermination)
 FAULT_TYPE(ScriptTerminationOnDispose)
 FAULT_TYPE(FaultInjectionSelfTest)
+FAULT_TYPE(ArrayBufferAlloc)
 
 // custom fault types
 // e.g. FaultInterpretThunk,

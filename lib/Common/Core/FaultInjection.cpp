@@ -995,7 +995,8 @@ namespace Js
     bool FaultInjection::ShouldInjectFault(FaultType fType, LPCWSTR name, size_t size)
     {
         bool shouldInjectionFault = ShouldInjectFaultHelper(fType, name, size);
-        if (shouldInjectionFault && fType != FaultType::ScriptTerminationOnDispose)
+        if (shouldInjectionFault && fType != FaultType::ScriptTerminationOnDispose &&
+            fType != FaultType::ArrayBufferAlloc)
         {
             dumpCurrentStackData(name, size);
         }

@@ -155,12 +155,14 @@ WebAssemblyMemory::GrowInternal(uint32 deltaPages)
             caughtExceptionObject = caughtExceptionObject->CloneIfStaticExceptionObject(GetScriptContext());
             JavascriptExceptionOperators::DoThrow(caughtExceptionObject, GetScriptContext());
         }
+        GetRecycler()->ReportExternalMemoryAllocation(oldBytes); //transferInternal overestimates the amount of freed memory
         return -1;
     }
 
     Assert(newBuffer);
     if (!newBuffer->GetByteLength() && m_buffer->GetByteLength() < newBytes)
     {
+        GetRecycler()->ReportExternalMemoryAllocation(oldBytes); //transferInternal overestimates the amount of freed memory
         return -1; //malloc in TransferInternal returns NULL and OOM wasn't thrown
     }
 

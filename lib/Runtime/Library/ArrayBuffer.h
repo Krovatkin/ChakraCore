@@ -214,8 +214,21 @@ namespace Js
         static JavascriptArrayBuffer* Create(byte* buffer, DECLSPEC_GUARD_OVERFLOW uint32 length, DynamicType * type);
         virtual void Dispose(bool isShutdown) override;
         virtual void Finalize(bool isShutdown) override;
+        static void*__cdecl  MallocWrapper(DECLSPEC_GUARD_OVERFLOW size_t length)
+        {
+            if (IS_FAULTINJECT_ON_ARRAYBUFFER_ALLOC(nullptr, length))
+            {
+                return nullptr;
+            }
+
+            return malloc(length);
+        }
         static void*__cdecl  AllocWrapper(DECLSPEC_GUARD_OVERFLOW size_t length)
         {
+            if (IS_FAULTINJECT_ON_ARRAYBUFFER_ALLOC(nullptr, length))
+            {
+                return nullptr;
+            }
 #if _WIN64
             LPVOID address = VirtualAlloc(nullptr, MAX_ASMJS_ARRAYBUFFER_LENGTH, MEM_RESERVE, PAGE_NOACCESS);
  

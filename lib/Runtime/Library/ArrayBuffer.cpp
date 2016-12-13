@@ -532,7 +532,7 @@ namespace Js
 #endif
 
     JavascriptArrayBuffer::JavascriptArrayBuffer(uint32 length, DynamicType * type) :
-        ArrayBuffer(length, type, (IsValidVirtualBufferLength(length)) ? AllocWrapper : malloc)
+        ArrayBuffer(length, type, (IsValidVirtualBufferLength(length)) ? AllocWrapper : MallocWrapper)
     {
     }
     JavascriptArrayBuffer::JavascriptArrayBuffer(byte* buffer, uint32 length, DynamicType * type) :
@@ -540,7 +540,7 @@ namespace Js
     {
     }
 
-    JavascriptArrayBuffer::JavascriptArrayBuffer(DynamicType * type): ArrayBuffer(0, type, malloc)
+    JavascriptArrayBuffer::JavascriptArrayBuffer(DynamicType * type): ArrayBuffer(0, type, MallocWrapper)
     {
     }
 
@@ -686,6 +686,10 @@ namespace Js
     // Same as realloc but zero newly allocated portion if newSize > oldSize
     static BYTE* ReallocZero(BYTE* ptr, size_t oldSize, size_t newSize)
     {
+        if (IS_FAULTINJECT_ON_ARRAYBUFFER_ALLOC(nullptr, newSize))
+        {
+            return nullptr;
+        }
         BYTE* ptrNew = (BYTE*)realloc(ptr, newSize);
         if (ptrNew && newSize > oldSize)
         {
@@ -742,7 +746,10 @@ namespace Js
                     }
                     else if (newBufferLength > this->bufferLength)
                     {
-                        LPVOID newMem = VirtualAlloc(this->buffer + this->bufferLength, newBufferLength - this->bufferLength, MEM_COMMIT, PAGE_READWRITE);
+                        LPVOID newMem = (IS_FAULTINJECT_ON_ARRAYBUFFER_ALLOC(nullptr, newBufferLength)) ?
+                            nullptr :
+                            VirtualAlloc(this->buffer + this->bufferLength, newBufferLength - this->bufferLength, MEM_COMMIT, PAGE_READWRITE);
+
                         if (!newMem)
                         {
                             recycler->ReportExternalMemoryFailure(newBufferLength);
@@ -754,7 +761,7 @@ namespace Js
                 else
                 {
                     // we are transferring from an optimized buffer, but the new length isn't compatible, so start over and copy to new memory
-                    newBuffer = (BYTE*)malloc(newBufferLength);
+                    newBuffer = (BYTE*)MallocWrapper(newBufferLength);
                     if (!newBuffer)
                     {
                         recycler->ReportExternalMemoryFailure(newBufferLength);

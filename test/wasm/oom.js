@@ -9,26 +9,31 @@ function assertEquals(expected, actual) {
     }
 }
 
-function createModulesUntilOOM (module, newSize) {
-    const n = 128; //~ 128GB which, hopefully, should be enough to counter a page file/swap
-    let arr = [];
-    for (let i = 0; i < n; i++)
-    {
-        let mod = new WebAssembly.Module(readbuffer('oom.wasm'));
-        let a = new WebAssembly.Instance(mod).exports;
-        let oldSize = a.grow(newSize);
-        if (oldSize == -1) {
+function wasmAlloc(initialSize, newSize) {
+
+    let memories = [];
+    const n = 5;
+
+    for (let i = 0; i < n; i++) {
+        try {
+            let m = new WebAssembly.Memory({initial:initialSize});
+            assertEquals(initialSize * (1 << 16) /*64K*/, m.buffer.byteLength);
+            m.grow(newSize);
+            memories.push(m);
+        } catch (e) {
             return 0;
         }
-        arr.push(mod); //keep WASM module references live in case GC decides to collect?
     }
 
-    return newSize;
+    return 1;
 }
 
-assertEquals(0, createModulesUntilOOM('oom.wasm',  0x4000)); // (memory 0) to 1GB (2^14*2^16)
-assertEquals(0, createModulesUntilOOM('oom2.wasm', 0x3ffe)); // (memory 2) to 1GB ((2^14-2)*2^16)
-assertEquals(0, createModulesUntilOOM('oom3.wasm', 0x4000)); // (memory 256) tests fast path on x64
+assertEquals(2, WScript.Arguments.length);
+
+const INITIAL_SIZE = parseInt(WScript.Arguments[0]);
+const GROW_SIZE = parseInt(WScript.Arguments[1]);
+
+assertEquals(0, wasmAlloc(INITIAL_SIZE, GROW_SIZE));
 print ("PASSED");
 
 

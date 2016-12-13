@@ -190,6 +190,9 @@ namespace Js
 #define FAULTINJECT_SCRIPT_TERMINATION_ON_DISPOSE \
     Js::FaultInjection::Global.ShouldInjectFault(Js::FaultInjection::Global.ScriptTerminationOnDispose)
 
+#define IS_FAULTINJECT_ON_ARRAYBUFFER_ALLOC(name, size) \
+    Js::FaultInjection::Global.ShouldInjectFault(Js::FaultInjection::Global.ArrayBufferAlloc, name, size)
+
 // A general implementation of customized fault type injection
 #define INJECT_FAULT(type, condition, execution) \
     do{\
@@ -210,6 +213,7 @@ namespace Js
 #define FAULTINJECT_SCRIPT_TERMINATION_ON_DISPOSE false
 #define FAULTINJECT_STACK_PROBE
 #define IS_FAULTINJECT_STACK_PROBE_ON false
+#define IS_FAULTINJECT_ON_ARRAYBUFFER_ALLOC(name, size) false
 
 #define INJECT_FAULT(type, condition, execution)
 

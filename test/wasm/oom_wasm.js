@@ -11,21 +11,27 @@ function assertEquals(expected, actual) {
 
 function wasmAlloc(initialSize, newSize) {
 
-    let memories = [];
     const n = 5;
+    const ONE_GB_IN_PAGES = 0x4000;
+    const instances = [];
+
+    const module = new WebAssembly.Module(readbuffer('oom.wasm'));
+    const sizeInBytes = initialSize * (1 << 16) /*64K*/;
 
     for (let i = 0; i < n; i++) {
-        try {
-            let m = new WebAssembly.Memory({initial:initialSize});
-            assertEquals(initialSize * (1 << 16) /*64K*/, m.buffer.byteLength);
-            m.grow(newSize);
-            memories.push(m);
-        } catch (e) {
-            return e;
-        }
+            let memObj = new WebAssembly.Memory({initial:initialSize, maximum: ONE_GB_IN_PAGES});
+            assertEquals(sizeInBytes, memObj.buffer.byteLength);
+            let instance = new WebAssembly.Instance(module, { "dummy" : { "memory" : memObj } }).exports;
+            assertEquals(initialSize, instance.size());
+            
+            if (instance.grow(newSize) == -1) {
+                return 0;
+            }
+
+            instances.push(instance);
     }
 
-    return new Error('OOM Expected');
+    return 1;
 }
 
 assertEquals(2, WScript.Arguments.length);
@@ -33,7 +39,5 @@ assertEquals(2, WScript.Arguments.length);
 const INITIAL_SIZE = parseInt(WScript.Arguments[0]);
 const GROW_SIZE = parseInt(WScript.Arguments[1]);
 
-let {name, message } = wasmAlloc(INITIAL_SIZE, GROW_SIZE);
-assertEquals("argument out of range", message); //message check comes first to render test failures more intuitive
-assertEquals("RangeError", name);
+assertEquals(0, wasmAlloc(INITIAL_SIZE, GROW_SIZE));
 print ("PASSED");

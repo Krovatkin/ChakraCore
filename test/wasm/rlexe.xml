@@ -164,4 +164,25 @@
        <tags>exclude_fre</tags>
     </default>
 </test>
+<test>
+    <default>
+       <files>oom_wasm.js</files>
+       <compile-flags>-FaultInjection:2 -FaultInjectionType:256 -FaultInjectionCount:1  -FaultInjectionAllocSize:1073741824 -args 0 16384 -endargs -wasm</compile-flags>
+       <tags>exclude_fre</tags>
+    </default>
+</test>
+<test>
+    <default>
+       <files>oom_wasm.js</files>
+       <compile-flags>-FaultInjection:2 -FaultInjectionType:256 -FaultInjectionCount:1  -FaultInjectionAllocSize:1073610752 -args 0 16382 -endargs -wasm</compile-flags>
+       <tags>exclude_fre</tags>
+    </default>
+</test>
+<test>
+    <default>
+       <files>oom_wasm.js</files>
+       <compile-flags>-FaultInjection:2 -FaultInjectionType:256 -FaultInjectionCount:2  -FaultInjectionAllocSize:20971520 -args 256 64 -endargs -wasm</compile-flags>
+       <tags>exclude_fre</tags>
+    </default>
+</test>
 </regress-exe>

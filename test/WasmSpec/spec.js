@@ -327,10 +327,11 @@ function mapWasmArg({type, value}) {
 const wrappers = {};
 
 
-function getComparisonWrapper(action, expected, checkType) {
+function getComparisonWrapper(action, expected, command, checkType) {
   if (action.type === "invoke") {
     const args = action.args.map(({type}) => type);
     const resultType = expected[0].type;
+    //print ("got here!");
     const signature = resultType + args.join("");
     const posNaN = resultType.endsWith("32") ? "0x7fc00000" : "0x7ff8000000000000";
     const negNaN = resultType.endsWith("32") ? "0xffc00000" : "0xfff8000000000000";
@@ -366,6 +367,7 @@ function getComparisonWrapper(action, expected, checkType) {
         (module
           (import "test" "fn" (func $fn ${params} (result ${resultType})))
           (func (export "compare") ${params} (result i32) (local ${matchingIntType})
+            (drop (i32.const ${command.line}))
             ${args.map((arg, i) => `(get_local ${i|0})`).join(" ")}
             (call $fn)
             ${castIfFloat}
@@ -382,6 +384,7 @@ function getComparisonWrapper(action, expected, checkType) {
       if (verbose) {
         console.log(newMod);
       }
+      //print ("got here2!");
       const buf = WebAssembly.wabt.convertWast2Wasm(newMod);
       wrappers[signature] = wasmModule = new WebAssembly.Module(buf);
 
@@ -390,17 +393,55 @@ function getComparisonWrapper(action, expected, checkType) {
       const {exports: {compare}} = new WebAssembly.Instance(wasmModule, {test: {fn}});
       return compare(...args);
     }
+  } /*
+  else if (action.type === "get") {
+    const resultType = expected[0].type;
+    const {field} = action;
+        const newMod = `
+        (module
+          (func (export "compare") (result i32)
+            (drop (i32.const ${command.line}))
+            (get ${field})
+            (${resultType}.const ${expected[0].value})
+            (${resultType}.eq)
+          )
+        )`;
+
+      if (true) {
+        console.log(newMod);
+      }
+
+      const buf = WebAssembly.wabt.convertWast2Wasm(newMod);
+      wrappers[signature] = wasmModule = new WebAssembly.Module(buf);
+
+
+      return () => {
+        const {exports: {compare}} = new WebAssembly.Instance(wasmModule);
+        return compare(...args);
+      }
+
+    //  const {field} = action;
+      //if (wrapper) {
+      //  return wrapper(m, field);
+      //}
   }
+  
+  */
 }
 
 function assertReturn(moduleRegistry, command, {canonicalNan, arithmeticNan} = {}) {
   const {action, expected} = command;
   try {
-    const wrapper =  getComparisonWrapper(action, expected, arithmeticNan ? WrapperType.ARITHMETIC : canonicalNan ? WrapperType.CANONICAL : WrapperType.EXACT);
+    //print(`expected.length ${expected.length}`);
+    const wrapper = (expected.length === 0 && !canonicalNan && !arithmeticNan || action.type === "get") ? null : getComparisonWrapper(action, expected, command, arithmeticNan ? WrapperType.ARITHMETIC : canonicalNan ? WrapperType.CANONICAL : WrapperType.EXACT);
+    //print(`wrapper ${wrapper}`);
     const res = runAction(moduleRegistry, action, wrapper);
+    //print(`res = ${res}`);
     let success = true;
-    if (expected.length === 0) {
+    if (expected.length === 0 && wrapper == null) {
       success = typeof res === "undefined";
+    } else if (action.type === "get") {
+        return res === expected[0].value;
     } else {
       // We don't support multi return right now
       success = res === 1;
@@ -498,7 +539,7 @@ function runAction(moduleRegistry, action, wrapper) {
       const res = wasmFn(...mappedArgs);
       return res;
     }
-    case "get": {
+    case "get": {      
       const {field} = action;
       if (wrapper) {
         return wrapper(m, field);

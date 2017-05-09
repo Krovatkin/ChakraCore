@@ -1122,12 +1122,36 @@ WasmBytecodeGenerator::EmitBinExpr(Js::OpCodeAsmJs op, const WasmTypes::WasmType
     EmitInfo rhs = PopEvalStack(lhsType);
     EmitInfo lhs = PopEvalStack(rhsType);
 
+    if (op == Js::OpCodeAsmJs::Min_Flt || op == Js::OpCodeAsmJs::Max_Flt ||
+        op == Js::OpCodeAsmJs::Min_Db || op == Js::OpCodeAsmJs::Max_Db) 
+    {
+        bool isFloat = op == Js::OpCodeAsmJs::Min_Flt || op == Js::OpCodeAsmJs::Max_Flt;
+        WasmTypes::WasmType type = isFloat ? WasmTypes::F32 : WasmTypes::F64;
+        Js::OpCodeAsmJs opCodeSub = isFloat ? Js::OpCodeAsmJs::Sub_Flt : Js::OpCodeAsmJs::Sub_Db;
+
+        Js::RegSlot zeroReg = GetRegisterSpace(type)->AcquireTmpRegister();
+        if (isFloat) 
+        {
+            m_writer->AsmFloat1Const1(Js::OpCodeAsmJs::Ld_FltConst, zeroReg, 0.0f);
+        }
+        else 
+        {
+            m_writer->AsmDouble1Const1(Js::OpCodeAsmJs::Ld_DbConst, zeroReg, 0.0f);
+        }
+        m_writer->AsmReg3(opCodeSub, lhs.location, lhs.location, zeroReg);
+        m_writer->AsmReg3(opCodeSub, rhs.location, rhs.location, zeroReg);
+        EmitInfo zEI(zeroReg, type);
+        ReleaseLocation(&zEI);
+    } 
+
     ReleaseLocation(&rhs);
     ReleaseLocation(&lhs);
 
     Js::RegSlot resultReg = GetRegisterSpace(resultType)->AcquireTmpRegister();
 
     m_writer->AsmReg3(op, resultReg, lhs.location, rhs.location);
+
+
 
     return EmitInfo(resultReg, resultType);
 }

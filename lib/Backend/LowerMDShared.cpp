@@ -9745,6 +9745,17 @@ void LowererMD::GenerateFastInlineBuiltInCall(IR::Instr* instr, IR::JnHelperMeth
                 instr->InsertBefore(IR::BranchInstr::New(Js::OpCode::JMP, doneLabel, instr->m_func));
 
                 instr->InsertBefore(labelNaNHelper);
+
+                this->m_lowerer->InsertMove(dst, src1, instr);
+                IR::Instr* comisdInstr = IR::Instr::New(src1->IsFloat64() ? Js::OpCode::COMISD : Js::OpCode::COMISS, this->m_func);
+                comisdInstr->SetSrc1(src1);
+                comisdInstr->SetSrc2(src1);
+                instr->InsertBefore(comisdInstr);
+                instr->InsertBefore(IR::BranchInstr::New(Js::OpCode::JP, doneLabel, this->m_func));
+                this->m_lowerer->InsertMove(dst, src2, instr);
+
+
+                /*
                 IR::Opnd * opndNaN = nullptr;
 
                 if (dst->IsFloat32())
@@ -9755,8 +9766,8 @@ void LowererMD::GenerateFastInlineBuiltInCall(IR::Instr* instr, IR::JnHelperMeth
                 {
                     opndNaN = IR::MemRefOpnd::New(m_func->GetThreadContextInfo()->GetDoubleNaNAddr(), IRType::TyFloat64, this->m_func);
                 }
-
                 this->m_lowerer->InsertMove(dst, opndNaN, instr);
+                */
             }
             instr->InsertBefore(doneLabel);
 

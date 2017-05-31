@@ -72,4 +72,16 @@
     <compile-flags> -wasm -wasmsimd -maic:0</compile-flags>
   </default>
 </test>
+<test>
+  <default>
+    <files>logicalTests.js</files>
+    <compile-flags> -wasm -wasmsimd</compile-flags>
+  </default>
+</test>
+<test>
+  <default>
+    <files>logicalTests.js</files>
+    <compile-flags> -wasm -wasmsimd -maic:0</compile-flags>
+  </default>
+</test>
 </regress-exe>

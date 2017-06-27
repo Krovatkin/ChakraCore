@@ -214,6 +214,7 @@ private:
 #define Bool32x4_Type Js::RegSlot
 #define Int32x4_Type Js::RegSlot
 #define Float64x2_Type Js::RegSlot
+#define Int64x2_Type Js::RegSlot
 #define Int16x8_Type Js::RegSlot
 #define Bool16x8_Type Js::RegSlot
 #define Int8x16_Type Js::RegSlot

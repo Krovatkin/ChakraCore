@@ -27,7 +27,8 @@
     Field(uint16)  u16[8];\
     Field(uint8)   u8[16];\
     Field(float)   f32[4];\
-    Field(double)  f64[2];
+    Field(double)  f64[2]; \
+    Field(int64)   i64[2];
 #define SIMD_TEMP_SIZE 3
 struct _SIMDValue
 {

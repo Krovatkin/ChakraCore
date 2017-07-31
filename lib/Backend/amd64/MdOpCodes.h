@@ -192,6 +192,8 @@ MACRO(POR,      Reg2,   None,           RNON,   f(MODRM),   o(POR),     DNO16|DO
 MACRO(PSHUFD,   Reg3,   None,           RNON,   f(MODRM),   o(PSHUFD),  DDST|DNO16|D66|DSSE,        OLB_0F)
 
 MACRO(PEXTRW,   Reg3,   None,           RNON,   f(MODRM),   o(PEXTRW),  DDST|DNO16|D66|DSSE,        OLB_0F)
+MACRO(PEXTRD,   Reg3,   None,           RNON,   f(SPECIAL), o(PEXTRD),  DDST|DNO16|DSSE|D66,        OLB_0F3A)
+MACRO(PEXTRQ,   Reg3,   None,           RNON,   f(SPECIAL), o(PEXTRQ),  DDST|DNO16|D66|DREXSRC|DSSE,OLB_0F3A)
 MACRO(PSLLDQ,   Reg2,   None,           R111,   f(SPECIAL), o(PSLLDQ),  DDST|DNO16|DOPEQ|D66|DSSE,  OLB_0F)
 MACRO(PSRLDQ,   Reg2,   None,           R011,   f(SPECIAL), o(PSRLDQ),  DDST|DNO16|DOPEQ|D66|DSSE,  OLB_0F)
 
@@ -260,6 +262,8 @@ MACRO(XCHG,     Reg2,   None,          R000,   f(XCHG),    o(XCHG),    DOPEQ,   
 MACRO(XOR,      Reg2,   OpSideEffect,  R110,   f(BINOP),   o(XOR),     DOPEQ|DSETCC|DCOMMOP,        OLB_NONE)
 MACRO(XORPS,    Reg3,   None,          RNON,   f(MODRM),   o(XORPS),   DNO16|DOPEQ|DCOMMOP,         OLB_0F)
 MACRO(PINSRW,   Reg2,   None,          RNON,   f(MODRM),   o(PINSRW),  DDST|DNO16|DSSE|D66,         OLB_0F)
+MACRO(PINSRD,   Reg3,   None,          RNON,   f(MODRM),   o(PINSRD),  DDST|DNO16|DSSE|D66,        OLB_0F3A)
+MACRO(PINSRQ,   Reg3,   None,          RNON,   f(MODRM),   o(PINSRQ),  DDST|DNO16|D66|DREXSRC|DSSE,OLB_0F3A)
 MACRO(POPCNT,   Reg2,   None,          RNON,   f(MODRM),   o(POPCNT),  DF3|DSETCC|DDST,             OLB_0F)
 
 #undef o

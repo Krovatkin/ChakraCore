@@ -1135,6 +1135,9 @@ modrm:
                     continue;
                 }
                 break;
+            case Js::OpCode::PEXTRD:
+                this->EmitModRM(instr, opr1, this->GetRegEncode(opr2->AsRegOpnd()));
+                break;
             case Js::OpCode::BT:
             case Js::OpCode::BTR:
                 /*

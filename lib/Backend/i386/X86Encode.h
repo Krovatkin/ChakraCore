@@ -273,7 +273,9 @@ enum Forms : BYTE
 #define OPBYTE_POPCNT   {0xB8}                  // modrm
 #define OPBYTE_PSHUFD   {0x70}                  // special
 #define OPBYTE_PEXTRW   {0xc5}                  // special
+#define OPBYTE_PEXTRD   {0x16}                  // special
 #define OPBYTE_PINSRW   {0xc4}                  // special
+#define OPBYTE_PINSRD   {0x22}                  // special
 #define OPBYTE_PSLLDQ   {0x73}                  // mmxshift
 #define OPBYTE_PSRLDQ   {0x73}                  // mmxshift
 

@@ -242,6 +242,7 @@ LAYOUT_TYPE_WMS_REG2  ( Int64x2_1Long1                   , Int64x2, Long)
 LAYOUT_TYPE_WMS_REG3  ( Long1Int64x2_1Int1               , Long, Int64x2, Int)
 LAYOUT_TYPE_WMS_REG4  ( Int64x2_2_Int1_Long1             , Int64x2, Int64x2, Int, Long)
 LAYOUT_TYPE_WMS_REG3  ( Int64x2_3                        , Int64x2, Int64x2, Int64x2)
+LAYOUT_TYPE_WMS_REG2  ( Int64x2_2                        , Int64x2, Int64x2)
 LAYOUT_TYPE_WMS_REG3  ( Int64x2_2Int1                    , Int64x2, Int64x2, Int) 
 LAYOUT_TYPE_WMS_REG2  ( Int1Bool64x2_1                   , Int, Int64x2)
 

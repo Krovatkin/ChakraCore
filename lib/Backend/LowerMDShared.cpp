@@ -866,6 +866,9 @@ LowererMD::LowerRet(IR::Instr * retInstr)
         case Js::AsmJsRetType::Float64x2:
             regType = TySimd128D2;
             break;
+        case Js::AsmJsRetType::Int64x2:
+            regType = TySimd128I2;
+            break;
         case Js::AsmJsRetType::Int16x8:
             regType = TySimd128I8;
             break;

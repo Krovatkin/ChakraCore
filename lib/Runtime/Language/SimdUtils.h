@@ -228,6 +228,11 @@ namespace Js {
             simdVal.f32[lane] = value;
             return simdVal;
         };
+        static inline SIMDValue SIMD128InnerReplaceLaneI2(SIMDValue simdVal, const uint32 lane, const int64 value)
+        {
+            simdVal.i64[lane] = value;
+            return simdVal;
+        };
         static inline SIMDValue SIMD128InnerReplaceLaneI4(SIMDValue simdVal, const uint32 lane, const int32 value)
         {
             simdVal.i32[lane] = value;
@@ -263,6 +268,7 @@ namespace Js {
         };
 
         static inline float SIMD128InnerExtractLaneF4(const SIMDValue src1, const uint32 lane) { return src1.f32[lane]; };
+        static inline int64 SIMD128InnerExtractLaneI2(const SIMDValue src1, const uint32 lane) { return src1.i64[lane]; };
         static inline int32 SIMD128InnerExtractLaneI4(const SIMDValue src1, const uint32 lane) { return src1.i32[lane]; };
         static inline int16 SIMD128InnerExtractLaneI8(const SIMDValue src1, const uint32 lane) { return src1.i16[lane]; };
         static inline int8 SIMD128InnerExtractLaneI16(const SIMDValue src1, const uint32 lane) { return src1.i8[lane];  };

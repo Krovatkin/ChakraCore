@@ -124,7 +124,7 @@ bool LowererMD::Simd128TryLowerMappedInstruction(IR::Instr *instr)
 IR::SymOpnd *
 LowererMD::LoadSimdHelperArgument(IR::Instr * instr, IR::Opnd * opndArg)
 {
-    //the most reliable way to pass a simd value on x86/x64 win/lnx across calls 
+    //the most reliable way to pass a simd value on x86/x64 win/lnx across calls
     //is to allocate a space on a stack and pass a pointer to the space to a helper
     //otherwise we have to use __m128 and msvc intrinsics which may or may not be the same across
     //MSVC and Clang
@@ -161,7 +161,7 @@ IR::Instr* LowererMD::Simd128LowerUnMappedInstruction(IR::Instr *instr)
         Js::OpCode opCode = instr->m_opcode == Js::OpCode::Simd128_Add_I2 ? Js::OpCode::Add_I4 : Js::OpCode::Sub_I4;
         IR::Opnd* int64Op1 = IR::RegOpnd::New(TyInt64, this->m_func);
         IR::Opnd* int64Op2 = IR::RegOpnd::New(TyInt64, this->m_func);
-        
+
         //add higher int64s
         EmitExtractInt64(int64Op1, src1, SECOND_INT64_INDEX, instr);
         EmitExtractInt64(int64Op2, src2, SECOND_INT64_INDEX, instr);
@@ -208,7 +208,7 @@ IR::Instr* LowererMD::Simd128LowerUnMappedInstruction(IR::Instr *instr)
     case Js::OpCode::Simd128_DoublesToD2:
         return Simd128LowerConstructor_2(instr);
 #endif // 0
-    
+
     case Js::OpCode::Simd128_ExtractLane_I2:
     case Js::OpCode::Simd128_ExtractLane_I4:
     case Js::OpCode::Simd128_ExtractLane_I8:
@@ -749,7 +749,7 @@ IR::Instr *LowererMD::Simd128LowerConstructor_2(IR::Instr *instr)
 }
 #endif
 
-void LowererMD::EmitShiftByScalarI2(IR::Instr *instr, IR::JnHelperMethod helper) 
+void LowererMD::EmitShiftByScalarI2(IR::Instr *instr, IR::JnHelperMethod helper)
 {
     IR::Opnd* src2 = instr->GetSrc2();
     IR::Opnd* dst = instr->GetDst();
@@ -890,7 +890,7 @@ IR::Instr* LowererMD::Simd128LowerLdLane(IR::Instr *instr)
 
     if (laneWidth == 8) //Simd128_ExtractLane_I2
     {
-        EmitExtractInt64(dst, instr->GetSrc1(), laneIndex, instr); 
+        EmitExtractInt64(dst, instr->GetSrc1(), laneIndex, instr);
     }
     else
     {
@@ -1018,26 +1018,6 @@ IR::Instr* LowererMD::Simd128LowerSplat(IR::Instr *instr)
 #endif // 0
     case Js::OpCode::Simd128_Splat_I2:
     {
-        //IR::Opnd* src = instr->UnlinkSrc1();
-        //LoadInt64HelperArgument(instr, src);
-        
-        /*IR::Opnd* dummy = EnregisterIntConst(instr, IR::IntConstOpnd::New(1234, TyInt32, m_func, true));
-        LoadHelperArgument(instr, dummy);
-
-        IR::SymOpnd *symOpnd = IR::SymOpnd::New(StackSym::New(dst->GetType(), this->m_func), dst->GetType(), this->m_func);
-        this->m_func->StackAllocate(symOpnd->m_sym->AsStackSym(), sizeof(SIMDValue));
-        IR::RegOpnd* SimdStackAddress = IR::RegOpnd::New(TyMachSimd128F4, m_func);
-        IR::Instr* LeaInstr = IR::Instr::New(Js::OpCode::LEA, SimdStackAddress, symOpnd, this->m_func);
-        instr->InsertBefore(LeaInstr);
-        LoadHelperArgument(instr, SimdStackAddress);
-
-        IR::Instr * helperCall = IR::Instr::New(Js::OpCode::CALL, this->m_func);
-        
-        instr->InsertBefore(helperCall);
-        this->ChangeToHelperCall(helperCall, IR::HelperSimd128SplatI2);
-        m_lowerer->InsertMove(dst, symOpnd, instr);*/
-
-        //EmitInsertLowerInt64(src1, instr);
         EmitInsertInt64(src1, 0, instr);
         instr->InsertBefore(IR::Instr::New(Js::OpCode::PSHUFD, dst, dst, IR::IntConstOpnd::New(68, TyInt8, m_func, true), m_func));
         bSkip = true;

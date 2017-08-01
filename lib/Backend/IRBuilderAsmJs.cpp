@@ -4605,7 +4605,7 @@ IRBuilderAsmJs::BuildInt64x2_2_Int1_Long1(Js::OpCodeAsmJs newOpcode, uint32 offs
 void
 IRBuilderAsmJs::BuildInt64x2_2Int1(Js::OpCodeAsmJs newOpcode, uint32 offset, BUILD_SIMD_ARGS_REG3)
 {
-    Assert(newOpcode == Js::OpCodeAsmJs::Simd128_ShLtByScalar_I2 || 
+    Assert(newOpcode == Js::OpCodeAsmJs::Simd128_ShLtByScalar_I2 ||
         newOpcode == Js::OpCodeAsmJs::Simd128_ShRtByScalar_I2 ||
         newOpcode == Js::OpCodeAsmJs::Simd128_ShRtByScalar_U2
     );
@@ -6395,27 +6395,24 @@ void IRBuilderAsmJs::BuildSimd_2(Js::OpCodeAsmJs newOpcode, uint32 offset, Js::R
 
     AssertMsg((uint32)opcode, "Invalid backend SIMD opcode");
 
-    if (newOpcode == Js::OpCodeAsmJs::Simd128_Neg_I2) 
+    if (newOpcode == Js::OpCodeAsmJs::Simd128_Neg_I2)
     {
         SIMDValue zeroVec{ 0 };
         IR::Opnd* zeroConst = IR::Simd128ConstOpnd::New(zeroVec, TySimd128F4, m_func);
-        //IR::Opnd* zeroConst = IR::Int64ConstOpnd::New(0, TyInt64, m_func);
         IR::RegOpnd* tmpReg = IR::RegOpnd::New(TyMachSimd128F4, m_func);
         tmpReg->SetValueType(ValueType::GetSimd128(ObjectType::Simd128Float32x4));
         IR::Instr * instr = IR::Instr::New(Js::OpCode::Simd128_LdC, tmpReg, zeroConst, m_func);
         AddInstr(instr, offset);
         instr = IR::Instr::New(Js::OpCode::Simd128_Sub_I2, dstOpnd, tmpReg, src1Opnd, m_func);
         AddInstr(instr, offset);
-        
+
     }
-    else 
+    else
     {
         IR::Instr * instr = IR::Instr::New(opcode, dstOpnd, src1Opnd, m_func);
         AddInstr(instr, offset);
     }
 
-    
-    
 }
 
 void IRBuilderAsmJs::BuildSimd_2Int1(Js::OpCodeAsmJs newOpcode, uint32 offset, Js::RegSlot dstRegSlot, Js::RegSlot src1RegSlot, Js::RegSlot src2RegSlot, IRType simdType)

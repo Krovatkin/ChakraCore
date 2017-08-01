@@ -832,19 +832,6 @@ if (switchProfileMode) \
     }
 #define PROCESS_SIMD_I1toU16_1(name, func) PROCESS_SIMD_I1toU16_1_COMMON(name, func,)
 
-/*
-#define PROCESS_SIMD_L1toI2_1_COMMON(name, func, suffix) \
-case OpCodeAsmJs::name: \
-{ \
-PROCESS_READ_LAYOUT_ASMJS(name, Int64x2_1Long1, suffix); \
-SIMDValue result {0}; \
-SIMDValue dst = GetRegRawSimd(playout->I2_0); \
-func(&dst, GetRegRawInt64(playout->L1)); \
-SetRegRawSimd(playout->I2_0, dst); \
-break; \
-}
-*/
-
 #define PROCESS_SIMD_B2_1toI1_COMMON(name, func, suffix) \
     case OpCodeAsmJs::name: \
     { \

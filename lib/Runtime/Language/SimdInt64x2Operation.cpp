@@ -7,7 +7,7 @@
 
 namespace Js
 {
-    
+
     SIMDValue SIMDInt64x2Operation::OpSplat(int64 val)
     {
         SIMDValue result;
@@ -15,26 +15,7 @@ namespace Js
         result.i64[1] = val;
         return result;
     }
-    /*
-    SIMDValue SIMDInt64x2Operation::OpSplat2(int t, int64 val)
-    {
-        SIMDValue result;
-        result.i64[0] = val;
-        result.i64[1] = val;
-        return result;
-    }
-    
 
-    void SIMDInt64x2Operation::OpSplat(SIMDValue* dst, int64 val)
-    {
-        
-        SIMDValue* result = (SIMDValue*)dst;
-        result->i64[0] = val;
-        result->i64[1] = val;
-        return;
-    }
-    */
-    
     SIMDValue SIMDInt64x2Operation::OpAdd(const SIMDValue& a, const SIMDValue& b)
     {
         SIMDValue result;
@@ -86,6 +67,3 @@ namespace Js
         dst->i64[index] = val;
     }
 }
-
-
-

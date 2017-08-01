@@ -96,4 +96,16 @@
     <compile-flags> -maic:0 -wasm -wasmsimd</compile-flags>
   </default>
 </test>
+<test>
+  <default>
+    <files>mathTests.js</files>
+    <compile-flags> -maic:0 -wasm -wasmsimd</compile-flags>
+  </default>
+</test>
+<test>
+  <default>
+    <files>mathTests.js</files>
+    <compile-flags> -maic:0 -wasm -wasmsimd</compile-flags>
+  </default>
+</test>
 </regress-exe>

@@ -1949,6 +1949,7 @@ IRBuilderAsmJs::BuildAsmReg1(Js::OpCodeAsmJs newOpcode, uint32 offset, Js::RegSl
 #define Bool32x4Proc(v) GetRegSlotFromSimd128Reg(v)
 #define Int32x4Proc(v) GetRegSlotFromSimd128Reg(v)
 #define Float64x2Proc(v) GetRegSlotFromSimd128Reg(v)
+#define Int64x2Proc(v) GetRegSlotFromSimd128Reg(v)
 #define Int16x8Proc(v) GetRegSlotFromSimd128Reg(v)
 #define Bool16x8Proc(v) GetRegSlotFromSimd128Reg(v)
 #define Int8x16Proc(v) GetRegSlotFromSimd128Reg(v)
@@ -4537,6 +4538,44 @@ void IRBuilderAsmJs::BuildReg1Int8x16_1(Js::OpCodeAsmJs newOpcode, uint32 offset
         Assert(UNREACHED);
     }
 }
+
+/* Int64x2 */
+void
+IRBuilderAsmJs::BuildInt64x2_1Long1(Js::OpCodeAsmJs newOpcode, uint32 offset, BUILD_SIMD_ARGS_REG2)
+{
+	AssertMsg(UNREACHED, "Unimplemented layout");
+}
+
+void
+IRBuilderAsmJs::BuildInt1Bool64x2_1(Js::OpCodeAsmJs newOpcode, uint32 offset, BUILD_SIMD_ARGS_REG2)
+{
+	AssertMsg(UNREACHED, "Unimplemented layout");
+}
+
+void
+IRBuilderAsmJs::BuildLong1Int64x2_1Int1(Js::OpCodeAsmJs newOpcode, uint32 offset, BUILD_SIMD_ARGS_REG3)
+{
+	AssertMsg(UNREACHED, "Unimplemented layout");
+}
+
+void
+IRBuilderAsmJs::BuildInt64x2_2_Int1_Long1(Js::OpCodeAsmJs newOpcode, uint32 offset, BUILD_SIMD_ARGS_REG4)
+{
+	AssertMsg(UNREACHED, "Unimplemented layout");
+}
+
+void
+IRBuilderAsmJs::BuildInt64x2_2Int1(Js::OpCodeAsmJs newOpcode, uint32 offset, BUILD_SIMD_ARGS_REG3)
+{
+	AssertMsg(UNREACHED, "Unimplemented layout");
+}
+
+void
+IRBuilderAsmJs::BuildInt64x2_3(Js::OpCodeAsmJs newOpcode, uint32 offset, BUILD_SIMD_ARGS_REG3)
+{
+	AssertMsg(UNREACHED, "Unimplemented layout");
+}
+
 
 /* Float64x2 */
 // Disabled for now

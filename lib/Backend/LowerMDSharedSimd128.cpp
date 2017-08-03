@@ -121,20 +121,19 @@ bool LowererMD::Simd128TryLowerMappedInstruction(IR::Instr *instr)
     return true;
 }
 
-IR::SymOpnd *
-LowererMD::LoadSimdHelperArgument(IR::Instr * instr, IR::Opnd * opndArg)
+IR::MemRefOpnd *
+LowererMD::LoadSimdHelperArgument(IR::Instr * instr, uint8 index)
 {
     //the most reliable way to pass a simd value on x86/x64 win/lnx across calls
     //is to allocate a space on a stack and pass a pointer to the space to a helper
     //otherwise we have to use __m128 and msvc intrinsics which may or may not be the same across
     //MSVC and Clang
-    IR::SymOpnd *symOpnd = IR::SymOpnd::New(StackSym::New(opndArg->GetType(), this->m_func), opndArg->GetType(), this->m_func);
-    this->m_func->StackAllocate(symOpnd->m_sym->AsStackSym(), sizeof(SIMDValue));
-    IR::RegOpnd* SimdStackAddress = IR::RegOpnd::New(TyMachPtr, m_func);
-    IR::Instr* LeaInstr = IR::Instr::New(Js::OpCode::LEA, SimdStackAddress, symOpnd, this->m_func);
-    instr->InsertBefore(LeaInstr);
-    LoadHelperArgument(instr, SimdStackAddress);
-    return symOpnd;
+
+    const IRType type = TySimd128F4;
+    IR::MemRefOpnd* srcMemRef = IR::MemRefOpnd::New(m_func->GetThreadContextInfo()->GetSimdTempAreaAddr(index), TySimd128F4, m_func);
+    IR::AddrOpnd* argAddress = IR::AddrOpnd::New(m_func->GetThreadContextInfo()->GetSimdTempAreaAddr(index), IR::AddrOpndKindDynamicMisc, m_func, true /* doesn't come from a user */);
+    LoadHelperArgument(instr, argAddress);
+    return srcMemRef;
 }
 
 IR::Instr* LowererMD::Simd128LowerUnMappedInstruction(IR::Instr *instr)
@@ -754,15 +753,13 @@ void LowererMD::EmitShiftByScalarI2(IR::Instr *instr, IR::JnHelperMethod helper)
     IR::Opnd* src2 = instr->GetSrc2();
     IR::Opnd* dst = instr->GetDst();
     LoadHelperArgument(instr, src2);
-    IR::SymOpnd* srcSymOpnd = LoadSimdHelperArgument(instr, instr->GetSrc1());
-    m_lowerer->InsertMove(srcSymOpnd, instr->GetSrc1(), instr);
-    IR::SymOpnd* dstSymOpnd = LoadSimdHelperArgument(instr, dst);
-
+    IR::MemRefOpnd* srcMemRef = LoadSimdHelperArgument(instr, 0);
+    m_lowerer->InsertMove(srcMemRef, instr->GetSrc1(), instr);
+    IR::MemRefOpnd* dstMemRef = LoadSimdHelperArgument(instr, 1);
     IR::Instr * helperCall = IR::Instr::New(Js::OpCode::CALL, this->m_func);
-
     instr->InsertBefore(helperCall);
     this->ChangeToHelperCall(helperCall, helper);
-    m_lowerer->InsertMove(dst, dstSymOpnd, instr);
+    m_lowerer->InsertMove(dst, dstMemRef, instr);
 }
 
 
@@ -778,13 +775,13 @@ IR::Instr * LowererMD::SIMD128LowerReplaceLane_2(IR::Instr *instr)
 
     LoadHelperArgument(instr, src2);
     LoadInt64HelperArgument(instr, src3);
-    IR::SymOpnd* srcSymOpnd = LoadSimdHelperArgument(instr, src1);
-    m_lowerer->InsertMove(srcSymOpnd, src1, instr);
-    IR::SymOpnd* dstSymOpnd = LoadSimdHelperArgument(instr, dst);
+    IR::MemRefOpnd* srcMemRef = LoadSimdHelperArgument(instr, 0);
+    m_lowerer->InsertMove(srcMemRef, src1, instr);
+    IR::MemRefOpnd* dstMemRef = LoadSimdHelperArgument(instr, 1);
     IR::Instr * helperCall = IR::Instr::New(Js::OpCode::CALL, this->m_func);
     instr->InsertBefore(helperCall);
     this->ChangeToHelperCall(helperCall, IR::HelperSimd128ReplaceLaneI2);
-    m_lowerer->InsertMove(dst, dstSymOpnd, instr);
+    m_lowerer->InsertMove(dst, dstMemRef, instr);
     return removeInstr(instr);
 }
 

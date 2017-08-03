@@ -267,7 +267,7 @@ public:
             IR::Instr *         LowerCallPut(IR::Instr * callInstr);
             IR::Instr *         LoadInt64HelperArgument(IR::Instr * instr, IR::Opnd* opnd);
             IR::Instr *         LoadHelperArgument(IR::Instr * instr, IR::Opnd * opndArg);
-            IR::SymOpnd *       LoadSimdHelperArgument(IR::Instr * instr, IR::Opnd * opndArg);
+            IR::MemRefOpnd *    LoadSimdHelperArgument(IR::Instr * instr, uint8 index);
             IR::Instr *         LoadDoubleHelperArgument(IR::Instr * instr, IR::Opnd * opndArg);
             IR::Instr *         LoadFloatHelperArgument(IR::Instr * instr, IR::Opnd * opndArg);
             IR::Instr *         LowerEntryInstr(IR::EntryInstr * entryInstr);

@@ -202,6 +202,7 @@ LAYOUT_TYPE_WMS_REG4  ( Float32x4_2Int1Float1            , Float32x4, Float32x4,
 // Int32x4_2
 LAYOUT_TYPE_WMS_REG2  ( Int32x4_2                        , Int32x4, Int32x4)
 LAYOUT_TYPE_WMS_REG3  ( Int32x4_3                        , Int32x4, Int32x4, Int32x4)
+LAYOUT_TYPE_WMS_REG4  ( Int32x4_4                        , Int32x4, Int32x4, Int32x4, Int32x4)
 LAYOUT_TYPE_WMS_REG3  ( Bool32x4_1Int32x4_2              , Bool32x4, Int32x4, Int32x4)
 LAYOUT_TYPE_WMS_REG4  ( Int32x4_1Bool32x4_1Int32x4_2     , Int32x4, Bool32x4, Int32x4, Int32x4)
 LAYOUT_TYPE_WMS_REG5  ( Int32x4_1Int4                    , Int32x4, Int, Int, Int, Int)

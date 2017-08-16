@@ -3962,6 +3962,37 @@ IRBuilderAsmJs::BuildInt32x4_3(Js::OpCodeAsmJs newOpcode, uint32 offset, BUILD_S
 }
 
 void
+IRBuilderAsmJs::BuildInt32x4_4(Js::OpCodeAsmJs newOpcode, uint32 offset, BUILD_SIMD_ARGS_REG4)
+{
+    ValueType valueType = GetSimdValueTypeFromIRType(TySimd128F4);
+    IR::RegOpnd * src1Opnd = BuildSrcOpnd(src1RegSlot, TySimd128F4);
+    src1Opnd->SetValueType(valueType);
+
+    IR::RegOpnd * src2Opnd = BuildSrcOpnd(src2RegSlot, TySimd128F4);
+    src2Opnd->SetValueType(valueType);
+
+    IR::RegOpnd * mask = BuildSrcOpnd(src3RegSlot, TySimd128F4);
+    src2Opnd->SetValueType(valueType);
+
+    IR::RegOpnd * dstOpnd = BuildDstOpnd(dstRegSlot, TySimd128F4);
+    dstOpnd->SetValueType(GetSimdValueTypeFromIRType(TySimd128F4));
+
+    Js::OpCode opcode;
+
+    opcode = GetSimdOpcode(newOpcode);
+
+    AssertMsg((uint32)opcode, "Invalid backend SIMD opcode");
+
+    IR::Instr* instr = nullptr;
+
+    instr = AddExtendedArg(src1Opnd, nullptr, offset);
+    instr = AddExtendedArg(src2Opnd, instr->GetDst()->AsRegOpnd(), offset);
+    instr = AddExtendedArg(mask, instr->GetDst()->AsRegOpnd(), offset);
+
+    AddInstr(IR::Instr::New(opcode, dstOpnd, instr->GetDst(), m_func), offset);
+}
+
+void
 IRBuilderAsmJs::BuildBool32x4_1Int32x4_2(Js::OpCodeAsmJs newOpcode, uint32 offset, BUILD_SIMD_ARGS_REG3)
 {
     BuildSimd_3(newOpcode, offset, dstRegSlot, src1RegSlot, src2RegSlot, TySimd128B4, TySimd128I4);

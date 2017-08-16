@@ -644,7 +644,9 @@ void WasmBytecodeGenerator::EmitExpr(WasmOp op)
         SetUnreachableState(true);
         info.type = WasmTypes::Any;
         break;
-
+    case wbM128Bitselect:
+        info = EmitM128BitSelect();
+        break;
 #define WASM_EXTRACTLANE_OPCODE(opname, opcode, sig, asmjsop, nyi) \
     case wb##opname: \
         info = EmitExtractLaneExpr(Js::OpCodeAsmJs::##asmjsop, WasmOpCodeSignatures::sig); \
@@ -1333,6 +1335,17 @@ EmitInfo WasmBytecodeGenerator::EmitReplaceLaneExpr(Js::OpCodeAsmJs op, const Wa
     m_writer->AsmReg4(op, resultReg, simdArg.location, indexInfo.location, valueArg.location);
     ReleaseLocation(&indexInfo);
     return result;
+}
+
+EmitInfo WasmBytecodeGenerator::EmitM128BitSelect()
+{
+    EmitInfo mask = PopEvalStack(WasmTypes::M128, _u("Argument should be of type M128"));
+    EmitInfo arg2Info = PopEvalStack(WasmTypes::M128, _u("Argument should be of type M128"));
+    EmitInfo arg1Info = PopEvalStack(WasmTypes::M128, _u("Argument should be of type M128"));
+    Js::RegSlot resultReg = GetRegisterSpace(WasmTypes::M128)->AcquireTmpRegister();
+    EmitInfo resultInfo(resultReg, WasmTypes::M128);
+    m_writer->AsmReg4(Js::OpCodeAsmJs::Simd128_BitSelect_I4, resultReg, arg1Info.location, arg2Info.location, mask.location);
+    return resultInfo;
 }
 
 EmitInfo WasmBytecodeGenerator::EmitExtractLaneExpr(Js::OpCodeAsmJs op, const WasmTypes::WasmType* signature)

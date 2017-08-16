@@ -339,6 +339,9 @@ EXDEF2_WMS(SIMD_I2_1I1toI2_1 , Simd128_ShLtByScalar_I2     , Js::SIMDInt64x2Oper
   DEF2_WMS(SIMD_I4_1I1toI4_1 , Simd128_ShRtByScalar_I4     , Js::SIMDInt32x4Operation::OpShiftRightByScalar)
 EXDEF2_WMS(SIMD_I2_1I1toI2_1 , Simd128_ShRtByScalar_I2     , Js::SIMDInt64x2Operation::OpShiftRightByScalar)
 
+// ternary ops
+EXDEF2_WMS( SIMD_I4_3toI4_1  , Simd128_BitSelect_I4          , SIMDUtils::SIMD128BitSelect)
+
   // binary ops
 EXDEF2_WMS( SIMD_I2_2toI2_1  , Simd128_Add_I2              , Js::SIMDInt64x2Operation::OpAdd             )
 EXDEF2_WMS( SIMD_F4_2toF4_1  , Simd128_Add_F4              , Js::SIMDFloat32x4Operation::OpAdd           )

@@ -82,6 +82,9 @@ const char16 * GetTypeName(WasmType type)
     case WasmTypes::WasmType::F64:
         typestring = _u("f64");
         break;
+    case WasmTypes::WasmType::M128:
+        typestring = _u("m128");
+        break;
     default:
         Assert(false);
         break;

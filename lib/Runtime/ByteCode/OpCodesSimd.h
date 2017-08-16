@@ -96,6 +96,9 @@ MACRO_SIMD_ASMJS_ONLY_WMS   ( Simd128_I_Conv_VTI4               , Int32x4_2     
 MACRO_SIMD(Simd128_End, Empty, None, None) // Just a marker to indicate SIMD opcodes region
 MACRO_SIMD_EXTEND(Simd128_Start_Extend, Empty, None, None, 0) // Just a marker to indicate SIMD extended opcodes region
 
+// Int32x4
+MACRO_SIMD_EXTEND_WMS           ( Simd128_BitSelect_I4              , Int32x4_4                         , None           ,        OpCanCSE         ,       0)
+
 // Float32x4
 MACRO_SIMD_EXTEND_WMS           ( Simd128_FloatsToF4                , Float32x4_1Float4                 , None           ,        OpCanCSE          ,      6,   &Js::SIMDFloat32x4Lib::EntryInfo::Float32x4, T_F4, T_FLT, T_FLT, T_FLT, T_FLT)
 MACRO_SIMD_EXTEND_WMS           ( Simd128_Splat_F4                  , Float32x4_1Float1                 , None           ,        OpCanCSE          ,      3,   &Js::SIMDFloat32x4Lib::EntryInfo::Splat    , T_F4, T_FLT)

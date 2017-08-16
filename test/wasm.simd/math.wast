@@ -6,6 +6,12 @@
 (module
   (import "dummy" "memory" (memory 1))
 
+    (func (export "func_i32x4_bitselect") (local $v1 m128) (local $v2 m128) (local $mask m128)
+        (set_local $v1 (m128.load offset=0 align=4 (i32.const 0)))
+        (set_local $v2 (m128.load offset=0 align=4 (i32.const 16)))
+        (set_local $mask (m128.load offset=0 align=4 (i32.const 32)))
+        (m128.store offset=0 (i32.const 0) (m128.bitselect (get_local $v1) (get_local $v2) (get_local $mask)))
+    )
 
     (func (export "func_i32x4_add") (local $v1 m128) (local $v2 m128)
         (set_local $v1 (m128.load offset=0 align=4 (i32.const 0)))

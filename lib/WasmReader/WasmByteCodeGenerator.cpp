@@ -1369,12 +1369,12 @@ EmitInfo WasmBytecodeGenerator::EmitM128BitSelect()
 EmitInfo WasmBytecodeGenerator::EmitV8X16Shuffle()
 {
 
-    EmitInfo indices[Simd::MAX_LANES];
+    //EmitInfo indices[Simd::MAX_LANES];
 
-    for (uint i = 0; i < Simd::MAX_LANES; i++)
-    {
-        indices[i] = EmitShuffleIndex(i);
-    }
+    //for (uint i = 0; i < Simd::MAX_LANES; i++)
+    //{
+    //    indices[i] = EmitShuffleIndex(i);
+    //}
 
     EmitInfo arg2Info = PopEvalStack(WasmTypes::M128, _u("Argument should be of type M128"));
     EmitInfo arg1Info = PopEvalStack(WasmTypes::M128, _u("Argument should be of type M128"));
@@ -1391,17 +1391,12 @@ EmitInfo WasmBytecodeGenerator::EmitV8X16Shuffle()
     );
     */
 
-    m_writer->AsmReg19(Js::OpCodeAsmJs::Simd128_Shuffle_I16, resultReg, arg1Info.location, arg2Info.location,
-        indices[0].location, indices[1].location, indices[2].location, indices[3].location,
-        indices[4].location, indices[5].location, indices[6].location, indices[7].location,
-        indices[8].location, indices[9].location, indices[10].location, indices[11].location,
-        indices[12].location, indices[13].location, indices[14].location, indices[15].location
-    );
+    m_writer->AsmShuffle(Js::OpCodeAsmJs::Simd128_Shuffle_I16, resultReg, arg1Info.location, arg2Info.location, GetReader()->m_currentNode.shuffle.indices);
 
-    for (uint i = 0; i < Simd::MAX_LANES; i++)
-    {
-        ReleaseLocation(&indices[Simd::MAX_LANES - i - 1]);
-    }
+    //for (uint i = 0; i < Simd::MAX_LANES; i++)
+    //{
+    //    ReleaseLocation(&indices[Simd::MAX_LANES - i - 1]);
+    //}
 
     return resultInfo;
 }

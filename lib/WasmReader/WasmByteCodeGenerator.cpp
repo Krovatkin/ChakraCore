@@ -647,6 +647,9 @@ void WasmBytecodeGenerator::EmitExpr(WasmOp op)
     case wbM128Bitselect:
         info = EmitM128BitSelect();
         break;
+    case wbV8X16Shuffle:
+        info = EmitV8X16Shuffle();
+        break;
 #define WASM_EXTRACTLANE_OPCODE(opname, opcode, sig, asmjsop, nyi) \
     case wb##opname: \
         info = EmitExtractLaneExpr(Js::OpCodeAsmJs::##asmjsop, WasmOpCodeSignatures::sig); \
@@ -1310,12 +1313,27 @@ void WasmBytecodeGenerator::CheckLaneIndex(Js::OpCodeAsmJs op)
     }
 }
 
+EmitInfo WasmBytecodeGenerator::EmitShuffleIndex(uint index)
+{
+    index = GetReader()->m_currentNode.shuffle.indices[index];
+    if (index >= Simd::MAX_LANES * 2)
+    {
+        throw WasmCompilationException(_u("index is out of range"));
+    }
+    return EnregisterIntConst(index);
+}
+
 EmitInfo WasmBytecodeGenerator::EmitLaneIndex(Js::OpCodeAsmJs op)
 {
     CheckLaneIndex(op);
     const uint offset = GetReader()->m_currentNode.lane.index;
+    return EnregisterIntConst(offset);
+}
+
+EmitInfo WasmBytecodeGenerator::EnregisterIntConst(uint constVal)
+{
     WasmConstLitNode dummy;
-    dummy.i32 = offset;
+    dummy.i32 = constVal;
     return EmitConst(WasmTypes::I32, dummy);
 }
 
@@ -1347,6 +1365,48 @@ EmitInfo WasmBytecodeGenerator::EmitM128BitSelect()
     m_writer->AsmReg4(Js::OpCodeAsmJs::Simd128_BitSelect_I4, resultReg, arg1Info.location, arg2Info.location, mask.location);
     return resultInfo;
 }
+
+EmitInfo WasmBytecodeGenerator::EmitV8X16Shuffle()
+{
+
+    EmitInfo indices[Simd::MAX_LANES];
+
+    for (uint i = 0; i < Simd::MAX_LANES; i++)
+    {
+        indices[i] = EmitShuffleIndex(i);
+    }
+
+    EmitInfo arg2Info = PopEvalStack(WasmTypes::M128, _u("Argument should be of type M128"));
+    EmitInfo arg1Info = PopEvalStack(WasmTypes::M128, _u("Argument should be of type M128"));
+
+    Js::RegSlot resultReg = GetRegisterSpace(WasmTypes::M128)->AcquireTmpRegister();
+    EmitInfo resultInfo(resultReg, WasmTypes::M128);
+
+    /*
+    m_writer->AsmReg19(Js::OpCodeAsmJs::Simd128_Shuffle_I16, resultReg, arg1Info.location, arg2Info.location,
+        indices[15].location, indices[14].location, indices[13].location, indices[12].location,
+        indices[11].location, indices[10].location, indices[9].location, indices[8].location,
+        indices[7].location, indices[6].location, indices[5].location, indices[4].location,
+        indices[3].location, indices[2].location, indices[1].location, indices[0].location
+    );
+    */
+
+    m_writer->AsmReg19(Js::OpCodeAsmJs::Simd128_Shuffle_I16, resultReg, arg1Info.location, arg2Info.location,
+        indices[0].location, indices[1].location, indices[2].location, indices[3].location,
+        indices[4].location, indices[5].location, indices[6].location, indices[7].location,
+        indices[8].location, indices[9].location, indices[10].location, indices[11].location,
+        indices[12].location, indices[13].location, indices[14].location, indices[15].location
+    );
+
+    for (uint i = 0; i < Simd::MAX_LANES; i++)
+    {
+        ReleaseLocation(&indices[Simd::MAX_LANES - i - 1]);
+    }
+
+    return resultInfo;
+}
+
+
 
 EmitInfo WasmBytecodeGenerator::EmitExtractLaneExpr(Js::OpCodeAsmJs op, const WasmTypes::WasmType* signature)
 {

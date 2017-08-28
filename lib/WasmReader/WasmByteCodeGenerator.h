@@ -207,10 +207,13 @@ namespace Wasm
         EmitInfo EmitBinExpr(Js::OpCodeAsmJs op, const WasmTypes::WasmType* signature);
         EmitInfo EmitUnaryExpr(Js::OpCodeAsmJs op, const WasmTypes::WasmType* signature);
         EmitInfo EmitM128BitSelect();
+        EmitInfo EmitV8X16Shuffle();
         EmitInfo EmitExtractLaneExpr(Js::OpCodeAsmJs op, const WasmTypes::WasmType* signature);
         EmitInfo EmitReplaceLaneExpr(Js::OpCodeAsmJs op, const WasmTypes::WasmType* signature);
         void CheckLaneIndex(Js::OpCodeAsmJs op);
         EmitInfo EmitLaneIndex(Js::OpCodeAsmJs op);
+        EmitInfo EmitShuffleIndex(uint index);
+        EmitInfo EnregisterIntConst(uint index);
 
         EmitInfo EmitConst(WasmTypes::WasmType type, WasmConstLitNode cnst);
         void EmitLoadConst(EmitInfo dst, WasmConstLitNode cnst);

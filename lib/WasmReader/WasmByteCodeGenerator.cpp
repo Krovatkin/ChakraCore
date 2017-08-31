@@ -1391,7 +1391,7 @@ EmitInfo WasmBytecodeGenerator::EmitV8X16Shuffle()
     );
     */
 
-    m_writer->AsmShuffle(Js::OpCodeAsmJs::Simd128_Shuffle_I16, resultReg, arg1Info.location, arg2Info.location, GetReader()->m_currentNode.shuffle.indices);
+    m_writer->AsmShuffle(Js::OpCodeAsmJs::Simd128_Shuffle_V8X16, resultReg, arg1Info.location, arg2Info.location, GetReader()->m_currentNode.shuffle.indices);
 
     //for (uint i = 0; i < Simd::MAX_LANES; i++)
     //{

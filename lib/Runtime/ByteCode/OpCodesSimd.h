@@ -448,6 +448,9 @@ MACRO_SIMD_EXTEND_WMS     ( Simd128_ExtractLane_U16             , Int1Uint8x16_1
 MACRO_SIMD_EXTEND_WMS     ( Simd128_ReplaceLane_U16             , Uint8x16_2Int2                   , None           ,        None               ,      0)
 MACRO_SIMD_EXTEND_WMS     ( Simd128_Swizzle_U16                 , Uint8x16_2Int16                  , None           ,        None               ,      0)
 MACRO_SIMD_EXTEND_WMS     ( Simd128_Shuffle_U16                 , Uint8x16_3Int16                  , None           ,        None               ,      0)
+MACRO_SIMD_EXTEND_WMS     ( Simd128_Shuffle_V8X16               , AsmShuffle                       , None           ,        None               ,      0)
+
+
 MACRO_SIMD_EXTEND_WMS     ( Simd128_Splat_U16                   , Uint8x16_1Int1                   , None           ,        None               ,      0)
 MACRO_SIMD_EXTEND_WMS     ( Simd128_And_U16                     , Uint8x16_3                       , None           ,        None               ,      0)
 MACRO_SIMD_EXTEND_WMS     ( Simd128_Or_U16                      , Uint8x16_3                       , None           ,        None               ,      0)

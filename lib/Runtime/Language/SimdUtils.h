@@ -303,7 +303,7 @@ namespace Js {
         ////////////////////////////////////////////
         // SIMD Shuffle Swizzle helpers
         ////////////////////////////////////////////
-        static SIMDValue SIMD128InnerShuffle(const SIMDValue src1, const SIMDValue src2, uint32 laneCount, const uint32* lanes = nullptr);
+        static SIMDValue SIMD128InnerShuffle(const SIMDValue src1, const SIMDValue src2, uint32 laneCount, const uint32 _UNALIGNED* lanes = nullptr);
 
         template <class SIMDType>
         static Var SIMD128SlowShuffle(Var src1, Var src2, Var *lanes, const uint32 laneCount, const uint32 range, ScriptContext* scriptContext);

@@ -375,8 +375,8 @@ LAYOUT_TYPE_WMS_REG2  ( Bool8x16_2                       , Bool8x16, Bool8x16)
 LAYOUT_TYPE_WMS_REG3  ( Bool8x16_3                       , Bool8x16, Bool8x16, Bool8x16)
 LAYOUT_TYPE_WMS_REG2  ( Reg1Bool8x16_1                   , Reg, Bool8x16)
 
-
 LAYOUT_TYPE_WMS       ( AsmSimdTypedArr                  )
+LAYOUT_TYPE_WMS       ( AsmShuffle                       )
 #endif
 
 #undef LAYOUT_TYPE_DUP

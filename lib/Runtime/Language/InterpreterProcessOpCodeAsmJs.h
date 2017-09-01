@@ -2201,7 +2201,14 @@ if (switchProfileMode) \
    case OpCodeAsmJs::name: \
    { \
    PROCESS_READ_LAYOUT_ASMJS(name, AsmShuffle, suffix); \
-   SetRegRawSimd(playout->R0, func(GetRegRawSimd(playout->R1), GetRegRawSimd(playout->R2), 16, playout->INDICES));  \
+   const uint32 max_lanes = 16; \
+   uint32 lanes[max_lanes]; \
+   for (uint32 i = 0; i < max_lanes; i++) \
+   { \
+       Assert(playout->INDICES[i] < max_lanes * 2); \
+       lanes[i] = playout->INDICES[i]; \
+   } \
+   SetRegRawSimd(playout->R0, func(GetRegRawSimd(playout->R1), GetRegRawSimd(playout->R2), max_lanes, lanes));  \
    break; \
    }
 #define PROCESS_SIMD_V8X16_2I16toV8X16_1(name, func) PROCESS_SIMD_V8X16_2I16toV8X16_1_COMMON(name, func,)

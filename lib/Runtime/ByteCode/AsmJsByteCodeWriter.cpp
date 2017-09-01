@@ -251,10 +251,7 @@ namespace Js
         OpLayoutT_AsmShuffle<SizePolicy> layout;
         if (SizePolicy::Assign(layout.R0, R0) && SizePolicy::Assign(layout.R1, R1) && SizePolicy::Assign(layout.R2, R2))
         {
-            for (uint32 i = 0; i < MAX_LANES; i++)
-            {
-                layout.INDICES[i] = indices[i]; //zero-extends each 8-bit index to 32-bit to take advantage of existing code
-            }
+            memcpy_s(layout.INDICES, MAX_LANES, indices, MAX_LANES);
             m_byteCodeData.EncodeT<SizePolicy::LayoutEnum>(op, &layout, sizeof(layout), this);
             return true;
         }

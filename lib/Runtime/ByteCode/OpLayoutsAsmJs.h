@@ -277,7 +277,7 @@ namespace Js
     template <typename SizePolicy>
     struct OpLayoutT_AsmShuffle
     {
-        uint32                      INDICES[16];
+        uint8                       INDICES[16];
         typename SizePolicy::RegSlotType     R0;
         typename SizePolicy::RegSlotType     R1;
         typename SizePolicy::RegSlotType     R2;

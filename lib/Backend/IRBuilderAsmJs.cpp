@@ -5812,6 +5812,10 @@ template <typename SizePolicy>
 void
 IRBuilderAsmJs::BuildAsmShuffle(Js::OpCodeAsmJs newOpcode, uint32 offset)
 {
+    //TODO @nikolayk BuildAsmShuffle is very similar to BuildUint8x16_3Int16
+    //Unfortunately, the latter expects the shuffle indices to come from a constant table
+    //which we don't use for WebAssembly modules.
+    //Try to think of unfugly (better) ways to merge the two
     Assert(OpCodeAttrAsmJs::HasMultiSizeLayout(newOpcode) && newOpcode == Js::OpCodeAsmJs::Simd128_Shuffle_V8X16);
     auto layout = m_jnReader.GetLayout<Js::OpLayoutT_AsmShuffle<SizePolicy>>();
 

@@ -248,12 +248,6 @@
 #endif
 #endif
 
-#ifdef _WIN64
-#define _UNALIGNED __unaligned
-#else
-#define _UNALIGNED
-#endif
-
 // Other features
 // #define CHAKRA_CORE_DOWN_COMPAT 1
 

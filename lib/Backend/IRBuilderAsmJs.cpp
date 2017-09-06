@@ -5866,11 +5866,7 @@ IRBuilderAsmJs::BuildAsmShuffle(Js::OpCodeAsmJs newOpcode, uint32 offset)
     instr = AddExtendedArg(src16Opnd, instr->GetDst()->AsRegOpnd(), offset);
     instr = AddExtendedArg(src17Opnd, instr->GetDst()->AsRegOpnd(), offset);
     instr = AddExtendedArg(src18Opnd, instr->GetDst()->AsRegOpnd(), offset);
-
-    Assert(newOpcode == Js::OpCodeAsmJs::Simd128_Shuffle_V8X16);
-    Js::OpCode opcode = Js::OpCode::Simd128_Shuffle_U16;
-
-    AddInstr(IR::Instr::New(opcode, dstOpnd, instr->GetDst(), m_func), offset);
+    AddInstr(IR::Instr::New(Js::OpCode::Simd128_Shuffle_U16, dstOpnd, instr->GetDst(), m_func), offset);
 }
 
 void IRBuilderAsmJs::BuildUint8x16_3Int16(Js::OpCodeAsmJs newOpcode, uint32 offset, BUILD_SIMD_ARGS_REG19)

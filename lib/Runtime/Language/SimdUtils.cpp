@@ -109,7 +109,7 @@ namespace Js
     }
 #endif
 
-    SIMDValue SIMDUtils::SIMD128InnerShuffle(const SIMDValue src1, const SIMDValue src2, uint32 laneCount, const uint32 _UNALIGNED* lanes)
+    SIMDValue SIMDUtils::SIMD128InnerShuffle(const SIMDValue src1, const SIMDValue src2, uint32 laneCount, const uint32* lanes)
     {
         SIMDValue result = { 0 };
         Assert(laneCount == 16 || laneCount == 8 || laneCount == 4);

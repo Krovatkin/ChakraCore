@@ -623,8 +623,8 @@ void WasmBinaryReader::ShuffleNode()
     for (uint32 i = 0; i < Simd::MAX_LANES; i++)
     {
         m_currentNode.shuffle.indices[i] = ReadConst<uint8>();
-        m_funcState.count++;
     }
+    m_funcState.count += Simd::MAX_LANES;
 }
 
 void WasmBinaryReader::LaneNode()

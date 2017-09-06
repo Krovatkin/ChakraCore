@@ -1313,16 +1313,6 @@ void WasmBytecodeGenerator::CheckLaneIndex(Js::OpCodeAsmJs op)
     }
 }
 
-EmitInfo WasmBytecodeGenerator::EmitShuffleIndex(uint index)
-{
-    index = GetReader()->m_currentNode.shuffle.indices[index];
-    if (index >= Simd::MAX_LANES * 2)
-    {
-        throw WasmCompilationException(_u("index is out of range"));
-    }
-    return EnregisterIntConst(index);
-}
-
 EmitInfo WasmBytecodeGenerator::EmitLaneIndex(Js::OpCodeAsmJs op)
 {
     CheckLaneIndex(op);
@@ -1386,8 +1376,6 @@ EmitInfo WasmBytecodeGenerator::EmitV8X16Shuffle()
     m_writer->AsmShuffle(Js::OpCodeAsmJs::Simd128_Shuffle_V8X16, resultReg, arg1Info.location, arg2Info.location, GetReader()->m_currentNode.shuffle.indices);
     return resultInfo;
 }
-
-
 
 EmitInfo WasmBytecodeGenerator::EmitExtractLaneExpr(Js::OpCodeAsmJs op, const WasmTypes::WasmType* signature)
 {

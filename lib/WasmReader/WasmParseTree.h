@@ -96,6 +96,11 @@ namespace Wasm
         };
     };
 
+    struct WasmShuffleNode
+    {
+        uint8 indices[Simd::MAX_LANES];
+    };
+
     struct WasmLaneNode
     {
         uint index;
@@ -152,6 +157,7 @@ namespace Wasm
             WasmMemOpNode mem;
             WasmVarNode var;
             WasmLaneNode lane;
+            WasmShuffleNode shuffle;
         };
     };
 

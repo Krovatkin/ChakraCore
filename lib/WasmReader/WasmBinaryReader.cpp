@@ -82,6 +82,9 @@ const char16 * GetTypeName(WasmType type)
     case WasmTypes::WasmType::F64:
         typestring = _u("f64");
         break;
+    case WasmTypes::WasmType::M128:
+        typestring = _u("m128");
+        break;
     default:
         Assert(false);
         break;
@@ -488,6 +491,9 @@ WasmOp WasmBinaryReader::ReadExpr()
         }
         break;
     }
+    case wbV8X16Shuffle:
+        ShuffleNode();
+        break;
 #define WASM_LANE_OPCODE(opname, opcode, sig, nyi) \
     case wb##opname: \
         LaneNode(); \
@@ -610,6 +616,15 @@ void WasmBinaryReader::BrTableNode()
     }
     m_currentNode.brTable.defaultTarget = LEB128(len);
     m_funcState.count += len;
+}
+
+void WasmBinaryReader::ShuffleNode()
+{
+    for (uint32 i = 0; i < Simd::MAX_LANES; i++)
+    {
+        m_currentNode.shuffle.indices[i] = ReadConst<uint8>();
+    }
+    m_funcState.count += Simd::MAX_LANES;
 }
 
 void WasmBinaryReader::LaneNode()

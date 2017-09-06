@@ -71,6 +71,7 @@ namespace Wasm
         void BrTableNode();
         void MemNode();
         void LaneNode();
+        void ShuffleNode();
         void VarNode();
 
         // Module readers

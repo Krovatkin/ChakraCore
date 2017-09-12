@@ -12,6 +12,7 @@ namespace Js {
         static SIMDValue OpAdd(const SIMDValue& a, const SIMDValue& b);
         static SIMDValue OpSub(const SIMDValue& a, const SIMDValue& b);
         static SIMDValue OpNeg(const SIMDValue& a);
+        template<typename T> static void OpTrunc(SIMDValue* dst, SIMDValue* src);
         static void OpShiftLeftByScalar(SIMDValue* dst, SIMDValue* src, int count);
         static void OpShiftRightByScalar(SIMDValue* dst, SIMDValue* src, int count);
         static void OpShiftRightByScalarU(SIMDValue* dst, SIMDValue* src, int count);

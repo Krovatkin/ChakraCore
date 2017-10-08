@@ -551,7 +551,7 @@ namespace Js
         };
         auto getPropertyId = [&]()->PropertyId{
             const PropertyRecord* propertyRecord;
-            requestContext->GetOrAddPropertyRecord(propertyNameString->GetString(), propertyNameString->GetLength(), &propertyRecord);
+            requestContext->GetOrAddPropertyRecord(propertyNameString, &propertyRecord);
             return propertyRecord->GetPropertyId();
         };
         PropertyDescriptor result;
@@ -692,7 +692,7 @@ namespace Js
     BOOL JavascriptProxy::SetProperty(JavascriptString* propertyNameString, Var value, PropertyOperationFlags flags, PropertyValueInfo* info)
     {
         const PropertyRecord* propertyRecord;
-        GetScriptContext()->GetOrAddPropertyRecord(propertyNameString->GetString(), propertyNameString->GetLength(), &propertyRecord);
+        GetScriptContext()->GetOrAddPropertyRecord(propertyNameString, &propertyRecord);
         return SetProperty(propertyRecord->GetPropertyId(), value, flags, info);
     }
 
@@ -1017,7 +1017,8 @@ namespace Js
                                 // if (desc.enumerable) yield key;
                                 if (desc.IsEnumerable())
                                 {
-                                    return JavascriptString::FromVar(CrossSite::MarshalVar(scriptContext, propertyName));
+                                    return JavascriptString::FromVar(CrossSite::MarshalVar(
+                                      scriptContext, propertyName, propertyName->GetScriptContext()));
                                 }
                             }
                         }
@@ -1777,7 +1778,7 @@ namespace Js
     BOOL JavascriptProxy::SetPropertyTrap(Var receiver, SetPropertyTrapKind setPropertyTrapKind, Js::JavascriptString * propertyNameString, Var newValue, ScriptContext* requestContext)
     {
         const PropertyRecord* propertyRecord;
-        requestContext->GetOrAddPropertyRecord(propertyNameString->GetString(), propertyNameString->GetLength(), &propertyRecord);
+        requestContext->GetOrAddPropertyRecord(propertyNameString, &propertyRecord);
         return SetPropertyTrap(receiver, setPropertyTrapKind, propertyRecord->GetPropertyId(), newValue, requestContext);
 
     }
@@ -1933,9 +1934,10 @@ namespace Js
             JavascriptError::ThrowTypeError(requestContext, JSERR_NeedFunction, requestContext->GetPropertyName(methodId)->GetBuffer());
         }
 
-        varMethod = CrossSite::MarshalVar(requestContext, varMethod);
+        JavascriptFunction* function = JavascriptFunction::FromVar(varMethod);
 
-        return JavascriptFunction::FromVar(varMethod);
+        return JavascriptFunction::FromVar(CrossSite::MarshalVar(requestContext,
+          function, function->GetScriptContext()));
     }
 
     Var JavascriptProxy::GetValueFromDescriptor(Var instance, PropertyDescriptor propertyDescriptor, ScriptContext* requestContext)
@@ -1954,11 +1956,10 @@ namespace Js
 
     void JavascriptProxy::PropertyIdFromInt(uint32 index, PropertyRecord const** propertyRecord)
     {
-        char16 buffer[20];
+        char16 buffer[22];
+        int pos = TaggedInt::ToBuffer(index, buffer, _countof(buffer));
 
-        ::_i64tow_s(index, buffer, sizeof(buffer) / sizeof(char16), 10);
-
-        GetScriptContext()->GetOrAddPropertyRecord((LPCWSTR)buffer, static_cast<int>(wcslen(buffer)), propertyRecord);
+        GetScriptContext()->GetOrAddPropertyRecord((LPCWSTR)buffer + pos, (_countof(buffer) - 1) - pos, propertyRecord);
     }
 
     Var JavascriptProxy::GetName(ScriptContext* requestContext, PropertyId propertyId)

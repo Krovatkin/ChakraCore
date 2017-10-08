@@ -336,8 +336,7 @@ namespace Js
         static int GetRetType(JavascriptFunction* func);
         static int GetAsmJsArgSize(AsmJsCallStackLayout * stack);
         static int GetDynamicRetType(AsmJsCallStackLayout * stack);
-        static DWORD GetAsmJsReturnValueOffset(AsmJsCallStackLayout * stack);
-        _NOINLINE   static int  AsmJsInterpreter(AsmJsCallStackLayout * stack);
+        _NOINLINE static void AsmJsInterpreter(AsmJsCallStackLayout * stack, byte* retDst);
 #elif _M_X64
         template <typename T>
         static T AsmJsInterpreter(AsmJsCallStackLayout* layout);
@@ -755,8 +754,6 @@ namespace Js
         template <class T> void OP_InitClass(const unaligned OpLayoutT_Class<T> * playout);
         inline Var OP_LdHomeObj(ScriptContext * scriptContext);
         inline Var OP_LdFuncObj(ScriptContext * scriptContext);
-        inline Var OP_ScopedLdHomeObj(ScriptContext * scriptContext);
-        inline Var OP_ScopedLdFuncObj(ScriptContext * scriptContext);
         template <typename T> void OP_LdElementUndefined(const unaligned OpLayoutT_ElementU<T>* playout);
         template <typename T> void OP_LdLocalElementUndefined(const unaligned OpLayoutT_ElementRootU<T>* playout);
         template <typename T> void OP_LdElementUndefinedScoped(const unaligned OpLayoutT_ElementScopedU<T>* playout);

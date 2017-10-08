@@ -3372,7 +3372,7 @@ LinearScan::InsertLoad(IR::Instr *instr, StackSym *sym, RegNum reg)
             sym->m_isConst = true;
             sym->m_isIntConst = oldSym->m_isIntConst;
             sym->m_isInt64Const = oldSym->m_isInt64Const;
-            sym->m_isTaggableIntConst = sym->m_isTaggableIntConst;
+            sym->m_isTaggableIntConst = oldSym->m_isTaggableIntConst;
         }
     }
     else
@@ -3902,8 +3902,18 @@ LinearScan::ProcessSecondChanceBoundaryHelper(IR::BranchInstr *branchInstr, IR::
                     nextInstr->m_opcode != Js::OpCode::BailOutStackRestore &&
                     this->currentBlock->HasData())
                 {
-                    // Clone with shallow copy
-                    branchLabel->m_loweredBasicBlock = this->currentBlock;
+                    IR::Instr* branchNextInstr = branchInstr->GetNextRealInstrOrLabel();
+                    if (branchNextInstr->IsLabelInstr())
+                    {
+                        // Clone with shallow copy
+                        branchLabel->m_loweredBasicBlock = this->currentBlock;
+                    }
+                    else
+                    {
+                        // Dead code after the unconditional branch causes the currentBlock data to be freed later on...  
+                        // Deep copy in this case.
+                        branchLabel->m_loweredBasicBlock = this->currentBlock->Clone(this->tempAlloc);
+                    }
                 }
             }
         }
